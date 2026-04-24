@@ -181,7 +181,8 @@ def generate_all_visualizations(features, cluster_results, df, k=6):
     titles = df["title"].tolist()
     for name, key in [("TF-IDF + KMeans","tfidf_lsa"),
                        ("LDA + KMeans","lda"),
-                       ("SBERT + KMeans","sbert")]:
+                       ("SBERT + KMeans","sbert"),
+                       ("SBERT + Hierarchical","sbert"),]:
         labels = cluster_results[name]["labels"]
         X = features[key]
         files.append(plot_clusters(X, labels, titles, name, proj="tsne"))

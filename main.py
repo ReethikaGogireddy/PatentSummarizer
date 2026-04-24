@@ -70,6 +70,10 @@ def main():
 
     cluster_results = run_all_clusterings(features, df, k=best_k)
 
+    print("\n=== Model Comparison ===")
+    for name, res in cluster_results.items():  
+        print(f"{name}: Silhouette={res['metrics']['silhouette']:.4f}")
+
     # Add cluster labels to DataFrame for each method
     for name, res in cluster_results.items():
         col = name.replace(" ", "_").replace("+", "").lower() + "_cluster"
@@ -77,8 +81,9 @@ def main():
 
     # ── Step 5: Summarization ────────────────────────────────────────────────
     banner("Step 5 · Cluster Summarization")
-    from summarization import build_cluster_summaries, print_cluster_report
+    from summarization import build_cluster_summaries, print_cluster_report, evaluate_summaries
     all_summaries = {}
+    summary_scores = {}
     rep_map = {
         "TF-IDF + KMeans": "tfidf_lsa",
         "LDA + KMeans":    "lda",
@@ -91,6 +96,9 @@ def main():
                                         features[X_key], name)
         all_summaries[name] = sums
         print_cluster_report(sums, name)
+        score = evaluate_summaries(sums)
+        summary_scores[name] = score   # ✅ ADD THIS
+        print(f"[Summarization] {name} ROUGE-1: {score:.4f}")
 
     # ── Step 6: Visualization ────────────────────────────────────────────────
     if not args.no_viz:
@@ -105,7 +113,7 @@ def main():
         banner("Step 7 · HTML Report")
         from report import generate_html_report
         report_path = generate_html_report(df, features, cluster_results,
-                                            all_summaries)
+                                            all_summaries, summary_scores=summary_scores)
         print(f"Report: {report_path}")
 
     # ── Save results CSV ─────────────────────────────────────────────────────

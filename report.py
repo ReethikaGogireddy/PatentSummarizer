@@ -28,7 +28,7 @@ def _metric_card(label, value):
 
 
 def generate_html_report(df, features, cluster_results, all_summaries,
-                          output_path=None):
+                          output_path=None,summary_scores=None):
     output_path = output_path or os.path.join(OUT_DIR, "patent_analysis_report.html")
 
     NAV_H = 52   # px — must match nav height in CSS
@@ -156,12 +156,18 @@ img {{ max-width:100%; display:block; }}
     except Exception:
         vocab_size = "N/A"
 
+    avg_rouge = None
+    if summary_scores:
+      avg_rouge = sum(summary_scores.values()) / len(summary_scores)
+
     corpus_html = f"""
     <div class="metric-grid">
       {_metric_card("Total Patents", n_docs)}
       {_metric_card("Avg. Token Length", avg_len)}
       {_metric_card("CPC Classes", len(cpc_counts))}
       {_metric_card("Vocabulary (TF-IDF)", vocab_size)}
+      {_metric_card("LDA Coherence", features.get("lda_coherence", "N/A"))}
+      { _metric_card("ROUGE-1", avg_rouge) if avg_rouge is not None else "" }
     </div>
     <h3>CPC Class Distribution</h3>
     <table>
@@ -169,6 +175,12 @@ img {{ max-width:100%; display:block; }}
       {''.join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in cpc_counts.items())}
     </table>
     """
+    # if summary_scores:
+    #   avg_rouge = sum(summary_scores.values()) / len(summary_scores)
+    #   corpus_html = corpus_html.replace(
+    #     "</div>",
+    #     f'{_metric_card("ROUGE-1", avg_rouge)}</div>'
+    # )
 
     # ── Metrics table ────────────────────────────────────────────────────────
     metrics_rows = ""
