@@ -153,41 +153,46 @@ img {{ max-width:100%; display:block; }}
     avg_len  = int(df["text"].str.split().str.len().mean())
     cpc_counts = df["cpc_code"].value_counts().to_dict() if "cpc_code" in df.columns else {}
     try:
-        vocab_size = len(features["tfidf_vec"].get_feature_names_out())
+      vocab_size = len(features["tfidf_vec"].get_feature_names_out())
     except Exception:
         vocab_size = "N/A"
 
-  
+    # Compute ROUGE
+    avg_r1 = avg_r2 = avg_rl = None
+    if summary_scores:
+        avg_r1 = np.mean([v["rouge1"] for v in summary_scores.values()])
+        avg_r2 = np.mean([v["rouge2"] for v in summary_scores.values()])
+        avg_rl = np.mean([v["rougeL"] for v in summary_scores.values()])
+
+    # Build metric cards
+    metric_cards = [
+        _metric_card("Total Patents", n_docs),
+        _metric_card("Avg. Token Length", avg_len),
+        _metric_card("CPC Classes", len(cpc_counts)),
+        _metric_card("Vocabulary (TF-IDF)", vocab_size),
+        _metric_card("LDA Coherence", features.get("lda_coherence", "N/A")),
+    ]
+
+    # Add ROUGE
+    if avg_r1 is not None:
+        metric_cards.extend([
+            _metric_card("ROUGE-1", avg_r1),
+            _metric_card("ROUGE-2", avg_r2),
+            _metric_card("ROUGE-L", avg_rl),
+        ])
+
+    # Final HTML
     corpus_html = f"""
     <div class="metric-grid">
-      {_metric_card("Total Patents", n_docs)}
-      {_metric_card("Avg. Token Length", avg_len)}
-      {_metric_card("CPC Classes", len(cpc_counts))}
-      {_metric_card("Vocabulary (TF-IDF)", vocab_size)}
-      {_metric_card("LDA Coherence", features.get("lda_coherence", "N/A"))}
+      {''.join(metric_cards)}
     </div>
+
     <h3>CPC Class Distribution</h3>
     <table>
       <tr><th>CPC Code</th><th>Patent Count</th></tr>
       {''.join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in cpc_counts.items())}
     </table>
     """
-    avg_rouge = None
-    if summary_scores:
-      avg_r1 = np.mean([v["rouge1"] for v in summary_scores.values()])
-      avg_r2 = np.mean([v["rouge2"] for v in summary_scores.values()])
-      avg_rl = np.mean([v["rougeL"] for v in summary_scores.values()])
-
-      corpus_html = corpus_html.replace(
-          "</div>",
-          f'''
-          {_metric_card("ROUGE-1", avg_r1)}
-          {_metric_card("ROUGE-2", avg_r2)}
-          {_metric_card("ROUGE-L", avg_rl)}
-          </div>
-          '''
-      )
-
     # ── Metrics table ────────────────────────────────────────────────────────
     metrics_rows = ""
     for method, res in cluster_results.items():
