@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from collections import Counter
 
 
 # ── Sentence-level extractive summarizer ────────────────────────────────────
@@ -128,6 +129,32 @@ def build_cluster_summaries(df: pd.DataFrame,
     return summaries
 
 
+
+def rouge1_score(summary, references):
+    """
+    Simple ROUGE-1 recall: overlap of unigrams
+    """
+    summary_tokens = summary.lower().split()
+    ref_tokens = " ".join(references).lower().split()
+
+    summary_counts = Counter(summary_tokens)
+    ref_counts = Counter(ref_tokens)
+
+    overlap = sum(min(summary_counts[w], ref_counts[w]) for w in summary_counts)
+
+    return overlap / max(1, len(ref_tokens))
+
+def evaluate_summaries(summaries):
+    scores = []
+
+    for s in summaries:
+        refs = s["representative_titles"]  # pseudo-reference
+        score = rouge1_score(s["summary"], refs)
+        scores.append(score)
+
+    return float(np.mean(scores))
+
+
 def print_cluster_report(summaries: list[dict], method_name: str = ""):
     header = f"{'─'*60}\n CLUSTER REPORT — {method_name}\n{'─'*60}"
     print(header)
@@ -141,6 +168,7 @@ def print_cluster_report(summaries: list[dict], method_name: str = ""):
     print()
 
 
+    
 if __name__ == "__main__":
     from ingestion import load_corpus
     from preprocessing import preprocess_corpus
@@ -153,3 +181,5 @@ if __name__ == "__main__":
         sums = build_cluster_summaries(df, res["labels"],
                                         feats["sbert"], name)
         print_cluster_report(sums, name)
+        score = evaluate_summaries(sums)
+        print(f"[Summarization] {name} ROUGE-1: {score:.4f}\n")

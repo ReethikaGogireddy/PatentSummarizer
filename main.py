@@ -60,7 +60,15 @@ def main():
     # ── Step 4: Clustering ───────────────────────────────────────────────────
     banner("Step 4 · Clustering")
     from clustering import run_all_clusterings
-    cluster_results = run_all_clusterings(features, df, k=args.k)
+    from clustering import find_optimal_k
+
+    print("\n=== Finding optimal k (SBERT) ===")
+    k_results = find_optimal_k(features["sbert"], range(2, 10))
+
+    best_k = max(k_results, key=lambda k: k_results[k]["silhouette"])
+    print(f"Best k based on silhouette: {best_k}")
+
+    cluster_results = run_all_clusterings(features, df, k=best_k)
 
     # Add cluster labels to DataFrame for each method
     for name, res in cluster_results.items():
@@ -75,6 +83,7 @@ def main():
         "TF-IDF + KMeans": "tfidf_lsa",
         "LDA + KMeans":    "lda",
         "SBERT + KMeans":  "sbert",
+        "SBERT + Hierarchical": "sbert",
     }
     for name, res in cluster_results.items():
         X_key = rep_map[name]
@@ -88,7 +97,7 @@ def main():
         banner("Step 6 · Visualization")
         from visualization import generate_all_visualizations
         fig_files = generate_all_visualizations(features, cluster_results, df,
-                                                  k=args.k)
+                                                  k=best_k)
         print(f"\nGenerated {len(fig_files)} figures in '{OUT_DIR}/'")
 
     # ── Step 7: HTML Report ──────────────────────────────────────────────────

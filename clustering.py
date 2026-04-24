@@ -15,6 +15,7 @@ from sklearn.metrics import (
 )
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import Normalizer
+from sklearn.cluster import AgglomerativeClustering
 
 
 def _run_kmeans(X: np.ndarray,
@@ -51,6 +52,16 @@ def cluster_stability(X: np.ndarray,
         for j in range(i + 1, len(labels_list)):
             aris.append(adjusted_rand_score(labels_list[i], labels_list[j]))
     return float(np.mean(aris))
+
+def run_hierarchical(X, k=6):
+    """Run Agglomerative (hierarchical) clustering."""
+    if hasattr(X, "toarray"):
+        X = X.toarray()
+    X = normalize(X, norm="l2")
+
+    model = AgglomerativeClustering(n_clusters=k, linkage="ward")
+    labels = model.fit_predict(X)
+    return labels, model
 
 
 def evaluate_clustering(X: np.ndarray,
@@ -106,6 +117,7 @@ def run_all_clusterings(features: dict,
         "TF-IDF + KMeans":  features["tfidf_lsa"],
         "LDA + KMeans":     features["lda"],
         "SBERT + KMeans":   features["sbert"],
+        "SBERT + Hierarchical": features["sbert"],   # NEW
     }
 
     # Optional: encode CPC codes as integer labels for external validation
@@ -118,7 +130,11 @@ def run_all_clusterings(features: dict,
     results = {}
     for name, X in configs.items():
         print(f"\n[Clustering] {name}  (k={k}) …")
-        labels, km_model = _run_kmeans(X, k=k)
+        if "Hierarchical" in name:
+            labels, km_model = run_hierarchical(X, k=k)
+        else:
+            labels, km_model = _run_kmeans(X, k=k)
+            
         if hasattr(X, "toarray"):
             Xd = X.toarray()
         else:

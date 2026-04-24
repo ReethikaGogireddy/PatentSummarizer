@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import TruncatedSVD, LatentDirichletAllocation
+from sklearn.metrics.pairwise import cosine_similarity
 
 # ── TF-IDF ──────────────────────────────────────────────────────────────────
 def build_tfidf(df, text_col="processed", max_features=3000):
@@ -60,6 +61,29 @@ def build_sbert(df, text_col="text", model_name="all-MiniLM-L6-v2"):
         mat, _ = build_tfidf(df, text_col="processed", max_features=3000)
         emb, _ = reduce_tfidf(mat, n_components=64)
         return emb
+    
+def compute_topic_coherence(lda_model, vectorizer, texts, top_n=10):
+        """
+        Approximate coherence using cosine similarity between top words.
+        (Simple proxy — enough for project)
+        """
+        vocab = vectorizer.get_feature_names_out()
+        topic_scores = []
+
+        for topic in lda_model.components_:
+            top_idx = topic.argsort()[::-1][:top_n]
+            words = vocab[top_idx]
+
+            # build small corpus of these words
+            vec = TfidfVectorizer().fit(words)
+            tfidf = vec.transform(words)
+            sim = cosine_similarity(tfidf)
+
+            # average similarity (excluding diagonal)
+            score = (sim.sum() - len(words)) / (len(words)*(len(words)-1))
+            topic_scores.append(score)
+
+        return float(np.mean(topic_scores))
 
 # ── Master builder ───────────────────────────────────────────────────────────
 def build_all_features(df, n_topics=6, tfidf_components=50):
@@ -67,6 +91,12 @@ def build_all_features(df, n_topics=6, tfidf_components=50):
     tfidf_lsa, _         = reduce_tfidf(tfidf_raw, n_components=tfidf_components)
     lda_mat, lda_model, lda_cv, lda_corpus = build_lda(df, n_topics=n_topics)
     sbert_mat = build_sbert(df)
+    coherence = compute_topic_coherence(
+    lda_model,
+    lda_cv,
+    df["processed"]
+)
+    print(f"[LDA] Topic Coherence: {coherence:.4f}")
     return {
         "tfidf_raw":  tfidf_raw,
         "tfidf_lsa":  tfidf_lsa,
@@ -76,4 +106,5 @@ def build_all_features(df, n_topics=6, tfidf_components=50):
         "lda_cv":     lda_cv,
         "lda_corpus": lda_corpus,
         "tfidf_vec":  tfidf_vec,
+        "lda_coherence": coherence
     }

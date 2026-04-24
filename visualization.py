@@ -58,8 +58,9 @@ def plot_clusters(X, labels, titles, name, proj="tsne", filename=None):
 def plot_all_projections(features, cluster_results, df, proj="tsne"):
     configs = [("TF-IDF + KMeans","tfidf_lsa"),
                ("LDA + KMeans","lda"),
-               ("SBERT + KMeans","sbert")]
-    fig, axes = plt.subplots(1, 3, figsize=(20, 6))
+               ("SBERT + KMeans","sbert"),
+               ("SBERT + Hierarchical","sbert"),]
+    fig, axes = plt.subplots(1, 4, figsize=(24, 6))
     titles = df["title"].tolist()
     for ax, (name, key) in zip(axes, configs):
         labels = cluster_results[name]["labels"]
