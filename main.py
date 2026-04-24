@@ -96,9 +96,17 @@ def main():
                                         features[X_key], name)
         all_summaries[name] = sums
         print_cluster_report(sums, name)
-        score = evaluate_summaries(sums)
-        summary_scores[name] = score   # ✅ ADD THIS
-        print(f"[Summarization] {name} ROUGE-1: {score:.4f}")
+        score = evaluate_summaries(sums, df)
+        summary_scores[name] = score
+
+        print(
+            f"[Summarization] {name} | "
+            f"R1={score['rouge1']:.3f} "
+            f"R2={score['rouge2']:.3f} "
+            f"RL={score['rougeL']:.3f} "
+            f"Cov={score['coverage']:.3f} "
+            f"Cent={score['proximity']:.3f}"
+        )
 
     # ── Step 6: Visualization ────────────────────────────────────────────────
     if not args.no_viz:
