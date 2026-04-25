@@ -63,27 +63,43 @@ def build_sbert(df, text_col="text", model_name="all-MiniLM-L6-v2"):
         return emb
     
 def compute_topic_coherence(lda_model, vectorizer, texts, top_n=10):
-        """
-        Approximate coherence using cosine similarity between top words.
-        (Simple proxy — enough for project)
-        """
-        vocab = vectorizer.get_feature_names_out()
-        topic_scores = []
+    """
+    Simple coherence using word co-occurrence in corpus (PMI-style proxy)
+    """
+    import numpy as np
 
-        for topic in lda_model.components_:
-            top_idx = topic.argsort()[::-1][:top_n]
-            words = vocab[top_idx]
+    # Get vocabulary and document-term matrix
+    vocab = vectorizer.get_feature_names_out()
+    X = vectorizer.transform(texts) 
 
-            # build small corpus of these words
-            vec = TfidfVectorizer().fit(words)
-            tfidf = vec.transform(words)
-            sim = cosine_similarity(tfidf)
+    topic_scores = []
 
-            # average similarity (excluding diagonal)
-            score = (sim.sum() - len(words)) / (len(words)*(len(words)-1))
-            topic_scores.append(score)
+    for topic in lda_model.components_:
+        top_idx = topic.argsort()[::-1][:top_n]
 
-        return float(np.mean(topic_scores))
+        # get columns for top words
+        word_vectors = X[:, top_idx].toarray()
+
+        pair_scores = []
+
+        for i in range(len(top_idx)):
+            for j in range(i + 1, len(top_idx)):
+                wi = word_vectors[:, i]
+                wj = word_vectors[:, j]
+
+                # co-occurrence: docs where both appear
+                co_occur = np.sum((wi > 0) & (wj > 0))
+                freq_i = np.sum(wi > 0)
+                freq_j = np.sum(wj > 0)
+
+                if co_occur > 0:
+                    score = co_occur / (freq_i + freq_j)
+                    pair_scores.append(score)
+
+        if pair_scores:
+            topic_scores.append(np.mean(pair_scores))
+
+    return float(np.mean(topic_scores)) if topic_scores else 0.0
 
 # ── Master builder ───────────────────────────────────────────────────────────
 def build_all_features(df, n_topics=6, tfidf_components=50):
@@ -108,3 +124,14 @@ def build_all_features(df, n_topics=6, tfidf_components=50):
         "tfidf_vec":  tfidf_vec,
         "lda_coherence": coherence
     }
+
+def find_best_topics(df, topic_range=range(2, 10)):
+    scores = {}
+    for k in topic_range:
+        lda_mat, lda_model, lda_cv, _ = build_lda(df, n_topics=k)
+        score = compute_topic_coherence(lda_model, lda_cv, df["processed"])
+        scores[k] = score
+        print(f"[LDA] topics={k} coherence={score:.4f}")
+    best_k = max(scores, key=scores.get)
+    print(f"[LDA] Best topics based on coherence: {best_k}")
+    return best_k, scores

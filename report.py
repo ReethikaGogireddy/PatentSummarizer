@@ -175,10 +175,15 @@ img {{ max-width:100%; display:block; }}
 
     # Add ROUGE
     if avg_r1 is not None:
+        avg_cov = np.mean([v["coverage"] for v in summary_scores.values()])
+        avg_prox = np.mean([v["proximity"] for v in summary_scores.values()])
+
         metric_cards.extend([
             _metric_card("ROUGE-1", avg_r1),
             _metric_card("ROUGE-2", avg_r2),
             _metric_card("ROUGE-L", avg_rl),
+            _metric_card("Coverage", avg_cov),
+            _metric_card("Centroid Sim", avg_prox),
         ])
 
     # Final HTML

@@ -192,7 +192,8 @@ def generate_all_visualizations(features, cluster_results, df, k=6):
     files.append(plot_all_projections(features, cluster_results, df, proj="pca"))
     files.append(plot_metrics_comparison(cluster_results))
     files.append(plot_cluster_sizes(cluster_results))
-    files.append(plot_lda_topics(features["lda_model"], n_topics=k))
+    lda_k = features["lda"].shape[1]
+    files.append(plot_lda_topics(features["lda_model"], n_topics=lda_k))
     files.append(plot_doc_topic_heatmap(features["lda"], df))
 
     from clustering import find_optimal_k

@@ -55,7 +55,11 @@ def main():
     # ── Step 3: Feature Engineering ──────────────────────────────────────────
     banner("Step 3 · Feature Engineering")
     from features import build_all_features
-    features = build_all_features(df, n_topics=args.topics)
+    from features import find_best_topics
+    print("\n=== Finding optimal LDA topics ===")
+    best_topics, topic_scores = find_best_topics(df)
+
+    features = build_all_features(df, n_topics=best_topics)
 
     # ── Step 4: Clustering ───────────────────────────────────────────────────
     banner("Step 4 · Clustering")
@@ -71,8 +75,23 @@ def main():
     cluster_results = run_all_clusterings(features, df, k=best_k)
 
     print("\n=== Model Comparison ===")
-    for name, res in cluster_results.items():  
-        print(f"{name}: Silhouette={res['metrics']['silhouette']:.4f}")
+
+    for name, res in cluster_results.items():
+        m = res["metrics"]
+        print(
+            f"{name}: "
+            f"Sil={m['silhouette']:.3f}, "
+            f"DB={m['davies_bouldin']:.3f}, "
+            f"Stab={m['stability_ari']:.3f}"
+        )
+
+    # ✅ Find best model
+    best_model = max(
+        cluster_results,
+        key=lambda x: cluster_results[x]["metrics"]["silhouette"]
+    )
+
+    print(f"\nBest performing model (Silhouette): {best_model}")
 
     # Add cluster labels to DataFrame for each method
     for name, res in cluster_results.items():
