@@ -6,7 +6,8 @@ Self-contained HTML report with working sticky nav + smooth scroll offset.
 import os, base64, json
 from datetime import datetime
 
-OUT_DIR = "outputs"
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT_DIR = os.path.join(_ROOT, "EVALUATIONS")
 
 
 def _img_tag(path, alt="", width="100%"):
@@ -31,7 +32,7 @@ def generate_html_report(df, features, cluster_results, all_summaries,
                           output_path=None,summary_scores=None):
     output_path = output_path or os.path.join(OUT_DIR, "patent_analysis_report.html")
 
-    NAV_H = 52   # px — must match nav height in CSS
+    NAV_H = 52   # px -- must match nav height in CSS
 
     css = f"""
 *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -39,13 +40,13 @@ html {{ scroll-behavior: smooth; }}
 body {{ font-family: 'Segoe UI', Arial, sans-serif; background:#f4f6f9;
         color:#222; line-height:1.6; }}
 
-/* ── Header ── */
+/* -- Header -- */
 header {{ background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);
           color:#fff; padding:40px 48px; }}
 header h1 {{ font-size:2rem; margin-bottom:6px; }}
 header p  {{ opacity:.8; font-size:.95rem; }}
 
-/* ── Sticky nav ── */
+/* -- Sticky nav -- */
 nav {{
   background:#0f3460;
   padding:0 48px;
@@ -71,7 +72,7 @@ nav a {{
 nav a:hover  {{ background:rgba(255,255,255,.15); color:#fff; }}
 nav a.active {{ background:rgba(255,255,255,.2);  color:#fff; }}
 
-/* ── Scroll offset so sticky nav doesn't cover section headings ── */
+/* -- Scroll offset so sticky nav doesn't cover section headings -- */
 section {{
   scroll-margin-top:{NAV_H + 16}px;
   background:#fff;
@@ -87,14 +88,14 @@ h2 {{ font-size:1.35rem; color:#0f3460; margin-bottom:18px;
       border-bottom:2px solid #e0e6f0; padding-bottom:8px; }}
 h3 {{ font-size:1.1rem; color:#16213e; margin:20px 0 10px; }}
 
-/* ── Metric cards ── */
+/* -- Metric cards -- */
 .metric-grid {{ display:flex; flex-wrap:wrap; gap:12px; margin:16px 0; }}
 .metric-card {{ background:#f0f4ff; border-radius:8px; padding:14px 20px;
                 text-align:center; min-width:140px; flex:1; }}
 .metric-val  {{ font-size:1.5rem; font-weight:700; color:#0f3460; }}
 .metric-lbl  {{ font-size:.78rem; color:#555; margin-top:4px; }}
 
-/* ── Cluster cards ── */
+/* -- Cluster cards -- */
 .cluster-card {{ border:1px solid #e0e6f0; border-radius:8px;
                  padding:16px; margin:12px 0; }}
 .cluster-card h4 {{ color:#0f3460; margin-bottom:8px; font-size:1rem; }}
@@ -106,20 +107,20 @@ h3 {{ font-size:1.1rem; color:#16213e; margin:20px 0 10px; }}
 .summary-text {{ font-size:.88rem; color:#555; margin:8px 0;
                  font-style:italic; }}
 
-/* ── Table ── */
+/* -- Table -- */
 table {{ width:100%; border-collapse:collapse; font-size:.88rem; margin-top:12px; }}
 th {{ background:#0f3460; color:#fff; padding:10px 14px; text-align:left; }}
 td {{ padding:9px 14px; border-bottom:1px solid #eee; }}
 tr:hover td {{ background:#f5f8ff; }}
 
-/* ── Badges ── */
+/* -- Badges -- */
 .badge {{ display:inline-block; padding:2px 8px; border-radius:10px;
           font-size:.75rem; font-weight:600; }}
 .badge-green  {{ background:#d4edda; color:#155724; }}
 .badge-blue   {{ background:#cce5ff; color:#004085; }}
 .badge-orange {{ background:#fff3cd; color:#856404; }}
 
-/* ── Method divider ── */
+/* -- Method divider -- */
 .method-block {{ margin-top:24px; border-top:2px dashed #e0e6f0; padding-top:16px; }}
 
 footer {{ text-align:center; padding:32px; color:#888; font-size:.85rem; }}
@@ -147,7 +148,7 @@ img {{ max-width:100%; display:block; }}
 }})();
 """
 
-    # ── Corpus stats ────────────────────────────────────────────────────────
+    # -- Corpus stats --------------------------------------------------------
     import numpy as np
     n_docs   = len(df)
     avg_len  = int(df["text"].str.split().str.len().mean())
@@ -198,7 +199,7 @@ img {{ max-width:100%; display:block; }}
       {''.join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in cpc_counts.items())}
     </table>
     """
-    # ── Metrics table ────────────────────────────────────────────────────────
+    # -- Metrics table --------------------------------------------------------
     metrics_rows = ""
     for method, res in cluster_results.items():
         m    = res["metrics"]
@@ -216,24 +217,24 @@ img {{ max-width:100%; display:block; }}
           <td><span class="badge {sb}">{sil:.4f}</span></td>
           <td><span class="badge {db_b}">{db:.4f}</span></td>
           <td><span class="badge {stb}">{stab:.4f}</span></td>
-          <td>{'—' if ari is None else f'{ari:.4f}'}</td>
-          <td>{'—' if nmi is None else f'{nmi:.4f}'}</td>
+          <td>{'--' if ari is None else f'{ari:.4f}'}</td>
+          <td>{'--' if nmi is None else f'{nmi:.4f}'}</td>
         </tr>"""
 
-    # ── Cluster summaries ────────────────────────────────────────────────────
+    # -- Cluster summaries ----------------------------------------------------
     cluster_html = ""
     for method_name, summaries in all_summaries.items():
         cluster_html += f'<div class="method-block"><h3>📌 {method_name}</h3>'
         for s in summaries:
             chips   = "".join(f'<span class="kw-chip">{k}</span>'
                                for k in s["keywords"][:7])
-            rep_div = "".join(f'<div class="rep-title">★ {t}</div>'
+            rep_div = "".join(f'<div class="rep-title">* {t}</div>'
                                for t in s["representative_titles"])
             cluster_html += f"""
             <div class="cluster-card">
-              <h4>Cluster {s['cluster_id']} &nbsp;·&nbsp; {s['size']} patents</h4>
+              <h4>Cluster {s['cluster_id']} &nbsp;-&nbsp; {s['size']} patents</h4>
               <div style="margin-bottom:8px">{chips}</div>
-              <p class="summary-text">{s['summary'][:320]} …</p>
+              <p class="summary-text">{s['summary'][:320]} ...</p>
               {rep_div}
             </div>"""
         cluster_html += "</div>"
@@ -255,49 +256,50 @@ img {{ max-width:100%; display:block; }}
 <body>
 
 <header>
-  <h1>📄 Patent Corpus Semantic Analysis</h1>
-  <p>TF-IDF &nbsp;·&nbsp; LDA &nbsp;·&nbsp; Sentence-BERT &nbsp;·&nbsp;
-     K-Means &nbsp;·&nbsp; t-SNE &nbsp;|&nbsp; Generated {now}</p>
+  <h1>Patent Corpus Semantic Analysis</h1>
+  <p>TF-IDF &nbsp;-&nbsp; LDA &nbsp;-&nbsp; Sentence-BERT &nbsp;-&nbsp;
+     K-Means &nbsp;-&nbsp; t-SNE &nbsp;|&nbsp; Generated {now}</p>
+  <p>Group 22 - Project 9 - CSE 573 Spring 2026 - Arizona State University</p>
 </header>
 
 <nav>
-  <a href="#corpus">🗂 Corpus</a>
-  <a href="#features">🧬 Features</a>
-  <a href="#clustering">📊 Clustering</a>
-  <a href="#summaries">📝 Summaries</a>
-  <a href="#visualizations">🖼 Visualizations</a>
+  <a href="#corpus">Corpus</a>
+  <a href="#features">Features</a>
+  <a href="#clustering">Clustering</a>
+  <a href="#summaries">Summaries</a>
+  <a href="#visualizations">Visualizations</a>
 </nav>
 
 <div class="container">
 
-  <!-- ── 1. Corpus ── -->
+  <!-- -- 1. Corpus -- -->
   <section id="corpus">
-    <h2>1 · Corpus Overview</h2>
+    <h2>1 - Corpus Overview</h2>
     {corpus_html}
   </section>
 
-  <!-- ── 2. Features ── -->
+  <!-- -- 2. Features -- -->
   <section id="features">
-    <h2>2 · Feature Engineering &amp; Topic Modeling</h2>
+    <h2>2 - Feature Engineering &amp; Topic Modeling</h2>
     <p>Three parallel document representations were built:</p>
     <ul style="margin:12px 0 12px 22px;line-height:2.2;">
-      <li><strong>TF-IDF + LSA</strong> — sparse lexical vectors reduced via SVD</li>
-      <li><strong>LDA</strong> — document-topic probability distributions
+      <li><strong>TF-IDF + LSA</strong> -- sparse lexical vectors reduced via SVD</li>
+      <li><strong>LDA</strong> -- document-topic probability distributions
           ({lda_dim} topics)</li>
-      <li><strong>Sentence-BERT</strong> — dense contextual embeddings
+      <li><strong>Sentence-BERT</strong> -- dense contextual embeddings
           ({sbert_dim}-dim)</li>
     </ul>
     <h3>LDA Topic Word Distributions</h3>
     {img("lda_topics.png")}
-    <h3>Document–Topic Probability Heatmap</h3>
+    <h3>Document-Topic Probability Heatmap</h3>
     {img("doc_topic_heatmap.png")}
   </section>
 
-  <!-- ── 3. Clustering ── -->
+  <!-- -- 3. Clustering -- -->
   <section id="clustering">
-    <h2>3 · Clustering Evaluation</h2>
+    <h2>3 - Clustering Evaluation</h2>
     <p>K-Means (k-means++ init) applied to all three representations.
-       <strong>Silhouette ↑ better · Davies-Bouldin ↓ better · Stability ↑ better.</strong></p>
+       <strong>Silhouette ↑ better - Davies-Bouldin ↓ better - Stability ↑ better.</strong></p>
     <table>
       <tr>
         <th>Method</th>
@@ -316,22 +318,22 @@ img {{ max-width:100%; display:block; }}
     {img("optimal_k_SBERT.png")}
   </section>
 
-  <!-- ── 4. Summaries ── -->
+  <!-- -- 4. Summaries -- -->
   <section id="summaries">
-    <h2>4 · Cluster Summaries</h2>
+    <h2>4 - Cluster Summaries</h2>
     <p>Each cluster shows its top keywords, an extractive summary,
        and the most representative patent titles (closest to centroid).</p>
     {cluster_html}
   </section>
 
-  <!-- ── 5. Visualizations ── -->
+  <!-- -- 5. Visualizations -- -->
   <section id="visualizations">
-    <h2>5 · Dimensionality Reduction Visualizations</h2>
+    <h2>5 - Dimensionality Reduction Visualizations</h2>
 
-    <h3>All Three Methods — t-SNE Side by Side</h3>
+    <h3>All Three Methods -- t-SNE Side by Side</h3>
     {img("all_projections_tsne.png")}
 
-    <h3>All Three Methods — PCA Side by Side</h3>
+    <h3>All Three Methods -- PCA Side by Side</h3>
     {img("all_projections_pca.png")}
 
     <h3>TF-IDF + K-Means (t-SNE)</h3>
@@ -356,8 +358,9 @@ img {{ max-width:100%; display:block; }}
 </div>
 
 <footer>
-  Patent Semantic Analysis Pipeline &nbsp;·&nbsp;
-  TF-IDF · LDA · Sentence-BERT · K-Means · t-SNE
+  Patent Semantic Analysis Pipeline &nbsp;-&nbsp;
+  TF-IDF - LDA - Sentence-BERT - K-Means - t-SNE &nbsp;-&nbsp;
+  Group 22 - CSE 573 Spring 2026 - Arizona State University
 </footer>
 
 <script>{js}</script>
@@ -366,5 +369,5 @@ img {{ max-width:100%; display:block; }}
 """
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html)
-    print(f"[Report] Saved → {output_path}")
+    print(f"[Report] Saved -> {output_path}")
     return output_path

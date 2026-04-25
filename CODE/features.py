@@ -8,9 +8,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import TruncatedSVD, LatentDirichletAllocation
 from sklearn.metrics.pairwise import cosine_similarity
 
-# ── TF-IDF ──────────────────────────────────────────────────────────────────
+# -- TF-IDF ------------------------------------------------------------------
 def build_tfidf(df, text_col="processed", max_features=3000):
-    print("[Features] Building TF-IDF …")
+    print("[Features] Building TF-IDF ...")
     vec = TfidfVectorizer(max_features=max_features, ngram_range=(1,2),
                            sublinear_tf=True, min_df=1)
     mat = vec.fit_transform(df[text_col])
@@ -24,9 +24,9 @@ def reduce_tfidf(mat, n_components=50):
     print(f"[Features] TF-IDF LSA: {reduced.shape}")
     return reduced, svd
 
-# ── LDA ─────────────────────────────────────────────────────────────────────
+# -- LDA ---------------------------------------------------------------------
 def build_lda(df, tokens_col="tokens", n_topics=6):
-    print(f"[Features] Building LDA ({n_topics} topics) …")
+    print(f"[Features] Building LDA ({n_topics} topics) ...")
     docs = [" ".join(t) for t in df[tokens_col]]
     cv = CountVectorizer(max_features=2000, min_df=1)
     X  = cv.fit_transform(docs)
@@ -46,11 +46,11 @@ def get_lda_top_words(lda, n_words=10):
         topics.append("Topic %d: " % i + ", ".join(vocab[top]))
     return topics
 
-# ── Sentence-BERT (with fallback) ───────────────────────────────────────────
+# -- Sentence-BERT (with fallback) -------------------------------------------
 def build_sbert(df, text_col="text", model_name="all-MiniLM-L6-v2"):
     try:
         from sentence_transformers import SentenceTransformer
-        print(f"[Features] Building SBERT ({model_name}) …")
+        print(f"[Features] Building SBERT ({model_name}) ...")
         model = SentenceTransformer(model_name)
         emb = model.encode(df[text_col].tolist(), show_progress_bar=True,
                            convert_to_numpy=True)
@@ -101,7 +101,7 @@ def compute_topic_coherence(lda_model, vectorizer, texts, top_n=10):
 
     return float(np.mean(topic_scores)) if topic_scores else 0.0
 
-# ── Master builder ───────────────────────────────────────────────────────────
+# -- Master builder -----------------------------------------------------------
 def build_all_features(df, n_topics=6, tfidf_components=50):
     tfidf_raw, tfidf_vec = build_tfidf(df)
     tfidf_lsa, _         = reduce_tfidf(tfidf_raw, n_components=tfidf_components)

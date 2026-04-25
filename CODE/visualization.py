@@ -1,5 +1,5 @@
 """
-Module 6: Visualization — t-SNE, PCA, metrics, LDA topic bars, heatmap
+Module 6: Visualization -- t-SNE, PCA, metrics, LDA topic bars, heatmap
 """
 import os, numpy as np, pandas as pd
 import matplotlib
@@ -11,7 +11,8 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.preprocessing import normalize
 
-OUT_DIR = "outputs"
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT_DIR = os.path.join(_ROOT, "EVALUATIONS")
 os.makedirs(OUT_DIR, exist_ok=True)
 
 PALETTE = ["#E63946","#457B9D","#2A9D8F","#E9C46A","#F4A261",
@@ -35,7 +36,7 @@ def _reduce(X, method="tsne", n=5):
     return PCA(n_components=2, random_state=42).fit_transform(X)
 
 def plot_clusters(X, labels, titles, name, proj="tsne", filename=None):
-    print(f"[Viz] {name} — {proj.upper()} …")
+    print(f"[Viz] {name} -- {proj.upper()} ...")
     X2d = _reduce(X, method=proj)
     cols, cmap = _colors(labels)
     fig, ax = plt.subplots(figsize=(9,7))
@@ -47,12 +48,12 @@ def plot_clusters(X, labels, titles, name, proj="tsne", filename=None):
     patches = [mpatches.Patch(color=cmap[c], label=f"Cluster {c}")
                for c in sorted(cmap)]
     ax.legend(handles=patches, loc="best", fontsize=8)
-    ax.set_title(f"{name} — {proj.upper()}", fontsize=13)
+    ax.set_title(f"{name} -- {proj.upper()}", fontsize=13)
     ax.grid(True, linestyle="--", alpha=0.3)
     plt.tight_layout()
     fn = filename or f"{OUT_DIR}/{name.replace(' ','_')}_{proj}.png"
     fig.savefig(fn, dpi=150, bbox_inches="tight"); plt.close(fig)
-    print(f"  → {fn}")
+    print(f"  -> {fn}")
     return fn
 
 def plot_all_projections(features, cluster_results, df, proj="tsne"):
@@ -76,7 +77,7 @@ def plot_all_projections(features, cluster_results, df, proj="tsne"):
     plt.tight_layout()
     fn = f"{OUT_DIR}/all_projections_{proj}.png"
     fig.savefig(fn, dpi=150, bbox_inches="tight"); plt.close(fig)
-    print(f"[Viz] → {fn}"); return fn
+    print(f"[Viz] -> {fn}"); return fn
 
 def plot_metrics_comparison(cluster_results):
     methods = list(cluster_results.keys())
@@ -99,7 +100,7 @@ def plot_metrics_comparison(cluster_results):
     plt.tight_layout()
     fn = f"{OUT_DIR}/metrics_comparison.png"
     fig.savefig(fn, dpi=150, bbox_inches="tight"); plt.close(fig)
-    print(f"[Viz] → {fn}"); return fn
+    print(f"[Viz] -> {fn}"); return fn
 
 def plot_lda_topics(lda_model, n_topics=6, n_words=8):
     vocab = lda_model._vocab
@@ -118,11 +119,11 @@ def plot_lda_topics(lda_model, n_topics=6, n_words=8):
         ax.tick_params(labelsize=8)
     for j in range(n_topics, len(axes_flat)):
         axes_flat[j].axis("off")
-    fig.suptitle("LDA Topics — Top Words", fontsize=13)
+    fig.suptitle("LDA Topics -- Top Words", fontsize=13)
     plt.tight_layout()
     fn = f"{OUT_DIR}/lda_topics.png"
     fig.savefig(fn, dpi=150, bbox_inches="tight"); plt.close(fig)
-    print(f"[Viz] → {fn}"); return fn
+    print(f"[Viz] -> {fn}"); return fn
 
 def plot_cluster_sizes(cluster_results):
     n = len(cluster_results)
@@ -140,7 +141,7 @@ def plot_cluster_sizes(cluster_results):
     plt.tight_layout()
     fn = f"{OUT_DIR}/cluster_sizes.png"
     fig.savefig(fn, dpi=150, bbox_inches="tight"); plt.close(fig)
-    print(f"[Viz] → {fn}"); return fn
+    print(f"[Viz] -> {fn}"); return fn
 
 def plot_optimal_k(k_results, method_name="SBERT"):
     ks  = sorted(k_results.keys())
@@ -152,7 +153,7 @@ def plot_optimal_k(k_results, method_name="SBERT"):
     ax2.plot(ks, db,  "s--", color="#E63946", label="Davies-Bouldin ↓")
     ax1.set_xlabel("k"); ax1.set_ylabel("Silhouette", color="#2A9D8F")
     ax2.set_ylabel("Davies-Bouldin", color="#E63946")
-    ax1.set_title(f"Optimal k — {method_name}", fontsize=12)
+    ax1.set_title(f"Optimal k -- {method_name}", fontsize=12)
     lines1,labs1 = ax1.get_legend_handles_labels()
     lines2,labs2 = ax2.get_legend_handles_labels()
     ax1.legend(lines1+lines2, labs1+labs2, fontsize=9)
@@ -160,7 +161,7 @@ def plot_optimal_k(k_results, method_name="SBERT"):
     plt.tight_layout()
     fn = f"{OUT_DIR}/optimal_k_{method_name.replace(' ','_')}.png"
     fig.savefig(fn, dpi=150, bbox_inches="tight"); plt.close(fig)
-    print(f"[Viz] → {fn}"); return fn
+    print(f"[Viz] -> {fn}"); return fn
 
 def plot_doc_topic_heatmap(lda_mat, df, max_docs=30):
     n = min(max_docs, len(df))
@@ -170,11 +171,11 @@ def plot_doc_topic_heatmap(lda_mat, df, max_docs=30):
     sns.heatmap(data, ax=ax, cmap="YlOrRd", linewidths=0.3,
                 xticklabels=[f"T{i}" for i in range(data.shape[1])],
                 yticklabels=short, vmin=0, vmax=1)
-    ax.set_title("Document–Topic Heatmap (LDA)", fontsize=12)
+    ax.set_title("Document-Topic Heatmap (LDA)", fontsize=12)
     plt.tight_layout()
     fn = f"{OUT_DIR}/doc_topic_heatmap.png"
     fig.savefig(fn, dpi=150, bbox_inches="tight"); plt.close(fig)
-    print(f"[Viz] → {fn}"); return fn
+    print(f"[Viz] -> {fn}"); return fn
 
 def generate_all_visualizations(features, cluster_results, df, k=6):
     files = []
@@ -197,7 +198,7 @@ def generate_all_visualizations(features, cluster_results, df, k=6):
     files.append(plot_doc_topic_heatmap(features["lda"], df))
 
     from clustering import find_optimal_k
-    print("\n[Viz] Optimal k search on SBERT …")
+    print("\n[Viz] Optimal k search on SBERT ...")
     k_res = find_optimal_k(features["sbert"], k_range=range(2, min(10, len(df))))
     files.append(plot_optimal_k(k_res, "SBERT"))
     return files

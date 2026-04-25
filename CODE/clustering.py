@@ -129,7 +129,7 @@ def run_all_clusterings(features: dict,
 
     results = {}
     for name, X in configs.items():
-        print(f"\n[Clustering] {name}  (k={k}) …")
+        print(f"\n[Clustering] {name}  (k={k}) ...")
         if "Hierarchical" in name:
             labels, km_model = run_hierarchical(X, k=k)
         else:

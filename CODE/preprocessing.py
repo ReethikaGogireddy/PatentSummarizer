@@ -34,7 +34,7 @@ def simple_tokenize(text: str) -> list:
 
 def preprocess_corpus(df: pd.DataFrame, text_col: str = "text") -> pd.DataFrame:
     df = df.copy()
-    print("[Preprocessing] Cleaning & tokenising …")
+    print("[Preprocessing] Cleaning & tokenising ...")
     df["clean_text"] = df[text_col].apply(clean_text)
     df["tokens"]     = df["clean_text"].apply(simple_tokenize)
     df["processed"]  = df["tokens"].apply(lambda t: " ".join(t))

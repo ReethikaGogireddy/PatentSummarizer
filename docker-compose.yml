@@ -9,9 +9,9 @@ services:
     image: patent-pipeline:latest
     container_name: patent-pipeline
     volumes:
-      - ./outputs:/app/outputs # results appear on your host machine
+      - ./EVALUATIONS:/app/EVALUATIONS   # results appear on your host machine
     command: >
-      python main.py
+      python CODE/main.py
         --source synthetic
         --n 48
         --k 6
@@ -22,9 +22,9 @@ services:
     image: patent-pipeline:latest
     container_name: patent-pipeline-real
     volumes:
-      - ./outputs:/app/outputs
+      - ./EVALUATIONS:/app/EVALUATIONS
     command: >
-      python main.py
+      python CODE/main.py
         --source patentsview
         --n 500
         --k 8
@@ -35,9 +35,9 @@ services:
     image: patent-pipeline:latest
     container_name: patent-pipeline-test
     volumes:
-      - ./outputs:/app/outputs
+      - ./EVALUATIONS:/app/EVALUATIONS
     command: >
-      python main.py
+      python CODE/main.py
         --source synthetic
         --n 48
         --k 6

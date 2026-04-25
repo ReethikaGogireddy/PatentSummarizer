@@ -12,7 +12,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from collections import Counter
 
 
-# ── Sentence-level extractive summarizer ────────────────────────────────────
+# -- Sentence-level extractive summarizer ------------------------------------
 
 def _split_sentences(text: str) -> list[str]:
     """Split text into sentences using simple heuristic."""
@@ -45,7 +45,7 @@ def extractive_summarize(texts: list[str],
         return combined[:400]
 
 
-# ── Top keywords per cluster via TF-IDF ─────────────────────────────────────
+# -- Top keywords per cluster via TF-IDF -------------------------------------
 
 def cluster_top_keywords(cluster_texts: list[str],
                           corpus_texts: list[str],
@@ -68,7 +68,7 @@ def cluster_top_keywords(cluster_texts: list[str],
         return []
 
 
-# ── Representative document selection ───────────────────────────────────────
+# -- Representative document selection ---------------------------------------
 
 def find_representatives(X: np.ndarray,
                           labels: np.ndarray,
@@ -93,7 +93,7 @@ def find_representatives(X: np.ndarray,
     return reps
 
 
-# ── Cluster report builder ───────────────────────────────────────────────────
+# -- Cluster report builder ---------------------------------------------------
 
 def build_cluster_summaries(df: pd.DataFrame,
                               labels: np.ndarray,
@@ -129,7 +129,7 @@ def build_cluster_summaries(df: pd.DataFrame,
     return summaries
 
 
-# ── Rogue 1 ───────────────────────────────────────────────────
+# -- Rogue 1 ---------------------------------------------------
 def rouge1_score(summary, references):
     """
     Simple ROUGE-1 recall: overlap of unigrams
@@ -144,7 +144,7 @@ def rouge1_score(summary, references):
 
     return overlap / max(1, len(ref_tokens))
 
-# ── Rouge 2 ───────────────────────────────────────────────────
+# -- Rouge 2 ---------------------------------------------------
 def _bigrams(tokens):
     return list(zip(tokens, tokens[1:]))
 
@@ -168,7 +168,7 @@ def _lcs(a, b):
                 dp[i+1][j+1] = max(dp[i][j+1], dp[i+1][j])
     return dp[-1][-1]
 
-# ── Rougue L ───────────────────────────────────────────────────
+# -- Rougue L ---------------------------------------------------
 def rouge_l_score(summary, references):
     summary_tokens = summary.lower().split()
     ref_tokens = " ".join(references).lower().split()
@@ -231,15 +231,15 @@ def evaluate_summaries(summaries, df):
 
 
 def print_cluster_report(summaries: list[dict], method_name: str = ""):
-    header = f"{'─'*60}\n CLUSTER REPORT — {method_name}\n{'─'*60}"
+    header = f"{'-'*60}\n CLUSTER REPORT -- {method_name}\n{'-'*60}"
     print(header)
     for s in summaries:
         print(f"\nCluster {s['cluster_id']}  ({s['size']} patents)")
         print(f"  Keywords : {', '.join(s['keywords'][:6])}")
-        print(f"  Summary  : {s['summary'][:250]} …")
+        print(f"  Summary  : {s['summary'][:250]} ...")
         if s["representative_titles"]:
             for t in s["representative_titles"]:
-                print(f"  ★ {t}")
+                print(f"  * {t}")
     print()
 
 

@@ -9,7 +9,7 @@ import random
 import requests
 import pandas as pd
 
-# ── Synthetic corpus (fallback when network is unavailable) ─────────────────
+# -- Synthetic corpus (fallback when network is unavailable) -----------------
 SYNTHETIC_PATENTS = [
     # Machine Learning / AI
     ("US10001", "Neural network training with sparse gradients",
@@ -164,7 +164,7 @@ def fetch_patentsview(n: int = 200, per_page: int = 100) -> pd.DataFrame:
     records = []
     page = 1
     fetched = 0
-    print("[Ingestion] Attempting PatentsView API fetch …")
+    print("[Ingestion] Attempting PatentsView API fetch ...")
     while fetched < n:
         size = min(per_page, n - fetched)
         payload = {

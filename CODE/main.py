@@ -1,14 +1,16 @@
 """
-main.py — End-to-end Patent Semantic Analysis Pipeline
+main.py -- End-to-end Patent Semantic Analysis Pipeline
 Usage:
-    python main.py [--source synthetic|patentsview] [--n 48] [--k 6] [--topics 6]
+    python CODE/main.py [--source synthetic|patentsview] [--n 48] [--k 6] [--topics 6]
 """
 
 import argparse
 import time
 import os
 
-OUT_DIR = "outputs"
+# Always write outputs to <repo_root>/EVALUATIONS/ regardless of CWD
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT_DIR = os.path.join(_ROOT, "EVALUATIONS")
 os.makedirs(OUT_DIR, exist_ok=True)
 
 
@@ -31,7 +33,7 @@ def parse_args():
 
 
 def banner(text: str):
-    line = "═" * (len(text) + 4)
+    line = "=" * (len(text) + 4)
     print(f"\n{line}")
     print(f"  {text}")
     print(f"{line}\n")
@@ -41,19 +43,19 @@ def main():
     args = parse_args()
     t0 = time.time()
 
-    # ── Step 1: Ingestion ────────────────────────────────────────────────────
-    banner("Step 1 · Data Ingestion")
+    # -- Step 1: Ingestion ----------------------------------------------------
+    banner("Step 1 -Data Ingestion")
     from ingestion import load_corpus
     df = load_corpus(source=args.source, n=args.n)
     print(f"Loaded {len(df)} patents.")
 
-    # ── Step 2: Preprocessing ────────────────────────────────────────────────
-    banner("Step 2 · Text Preprocessing")
+    # -- Step 2: Preprocessing ------------------------------------------------
+    banner("Step 2 -Text Preprocessing")
     from preprocessing import preprocess_corpus
     df = preprocess_corpus(df)
 
-    # ── Step 3: Feature Engineering ──────────────────────────────────────────
-    banner("Step 3 · Feature Engineering")
+    # -- Step 3: Feature Engineering ------------------------------------------
+    banner("Step 3 -Feature Engineering")
     from features import build_all_features
     from features import find_best_topics
     print("\n=== Finding optimal LDA topics ===")
@@ -61,8 +63,8 @@ def main():
 
     features = build_all_features(df, n_topics=best_topics)
 
-    # ── Step 4: Clustering ───────────────────────────────────────────────────
-    banner("Step 4 · Clustering")
+    # -- Step 4: Clustering ---------------------------------------------------
+    banner("Step 4 -Clustering")
     from clustering import run_all_clusterings
     from clustering import find_optimal_k
 
@@ -85,7 +87,7 @@ def main():
             f"Stab={m['stability_ari']:.3f}"
         )
 
-    # ✅ Find best model
+    # Find best model
     best_model = max(
         cluster_results,
         key=lambda x: cluster_results[x]["metrics"]["silhouette"]
@@ -98,8 +100,8 @@ def main():
         col = name.replace(" ", "_").replace("+", "").lower() + "_cluster"
         df[col] = res["labels"]
 
-    # ── Step 5: Summarization ────────────────────────────────────────────────
-    banner("Step 5 · Cluster Summarization")
+    # -- Step 5: Summarization ------------------------------------------------
+    banner("Step 5 -Cluster Summarization")
     from summarization import build_cluster_summaries, print_cluster_report, evaluate_summaries
     all_summaries = {}
     summary_scores = {}
@@ -127,26 +129,26 @@ def main():
             f"Cent={score['proximity']:.3f}"
         )
 
-    # ── Step 6: Visualization ────────────────────────────────────────────────
+    # -- Step 6: Visualization ------------------------------------------------
     if not args.no_viz:
-        banner("Step 6 · Visualization")
+        banner("Step 6 -Visualization")
         from visualization import generate_all_visualizations
         fig_files = generate_all_visualizations(features, cluster_results, df,
                                                   k=best_k)
         print(f"\nGenerated {len(fig_files)} figures in '{OUT_DIR}/'")
 
-    # ── Step 7: HTML Report ──────────────────────────────────────────────────
+    # -- Step 7: HTML Report --------------------------------------------------
     if not args.no_report:
-        banner("Step 7 · HTML Report")
+        banner("Step 7 -HTML Report")
         from report import generate_html_report
         report_path = generate_html_report(df, features, cluster_results,
                                             all_summaries, summary_scores=summary_scores)
         print(f"Report: {report_path}")
 
-    # ── Save results CSV ─────────────────────────────────────────────────────
+    # -- Save results CSV -----------------------------------------------------
     csv_path = os.path.join(OUT_DIR, "patent_clusters.csv")
     df.drop(columns=["tokens"], errors="ignore").to_csv(csv_path, index=False)
-    print(f"\nCluster assignments saved → {csv_path}")
+    print(f"\nCluster assignments saved -> {csv_path}")
 
     elapsed = time.time() - t0
     banner(f"Pipeline Complete in {elapsed:.1f}s")
