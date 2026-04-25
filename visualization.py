@@ -58,8 +58,9 @@ def plot_clusters(X, labels, titles, name, proj="tsne", filename=None):
 def plot_all_projections(features, cluster_results, df, proj="tsne"):
     configs = [("TF-IDF + KMeans","tfidf_lsa"),
                ("LDA + KMeans","lda"),
-               ("SBERT + KMeans","sbert")]
-    fig, axes = plt.subplots(1, 3, figsize=(20, 6))
+               ("SBERT + KMeans","sbert"),
+               ("SBERT + Hierarchical","sbert"),]
+    fig, axes = plt.subplots(1, 4, figsize=(24, 6))
     titles = df["title"].tolist()
     for ax, (name, key) in zip(axes, configs):
         labels = cluster_results[name]["labels"]
@@ -180,7 +181,8 @@ def generate_all_visualizations(features, cluster_results, df, k=6):
     titles = df["title"].tolist()
     for name, key in [("TF-IDF + KMeans","tfidf_lsa"),
                        ("LDA + KMeans","lda"),
-                       ("SBERT + KMeans","sbert")]:
+                       ("SBERT + KMeans","sbert"),
+                       ("SBERT + Hierarchical","sbert"),]:
         labels = cluster_results[name]["labels"]
         X = features[key]
         files.append(plot_clusters(X, labels, titles, name, proj="tsne"))
@@ -190,7 +192,8 @@ def generate_all_visualizations(features, cluster_results, df, k=6):
     files.append(plot_all_projections(features, cluster_results, df, proj="pca"))
     files.append(plot_metrics_comparison(cluster_results))
     files.append(plot_cluster_sizes(cluster_results))
-    files.append(plot_lda_topics(features["lda_model"], n_topics=k))
+    lda_k = features["lda"].shape[1]
+    files.append(plot_lda_topics(features["lda_model"], n_topics=lda_k))
     files.append(plot_doc_topic_heatmap(features["lda"], df))
 
     from clustering import find_optimal_k

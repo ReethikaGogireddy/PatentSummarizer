@@ -55,12 +55,43 @@ def main():
     # ── Step 3: Feature Engineering ──────────────────────────────────────────
     banner("Step 3 · Feature Engineering")
     from features import build_all_features
-    features = build_all_features(df, n_topics=args.topics)
+    from features import find_best_topics
+    print("\n=== Finding optimal LDA topics ===")
+    best_topics, topic_scores = find_best_topics(df)
+
+    features = build_all_features(df, n_topics=best_topics)
 
     # ── Step 4: Clustering ───────────────────────────────────────────────────
     banner("Step 4 · Clustering")
     from clustering import run_all_clusterings
-    cluster_results = run_all_clusterings(features, df, k=args.k)
+    from clustering import find_optimal_k
+
+    print("\n=== Finding optimal k (SBERT) ===")
+    k_results = find_optimal_k(features["sbert"], range(2, 10))
+
+    best_k = max(k_results, key=lambda k: k_results[k]["silhouette"])
+    print(f"Best k based on silhouette: {best_k}")
+
+    cluster_results = run_all_clusterings(features, df, k=best_k)
+
+    print("\n=== Model Comparison ===")
+
+    for name, res in cluster_results.items():
+        m = res["metrics"]
+        print(
+            f"{name}: "
+            f"Sil={m['silhouette']:.3f}, "
+            f"DB={m['davies_bouldin']:.3f}, "
+            f"Stab={m['stability_ari']:.3f}"
+        )
+
+    # ✅ Find best model
+    best_model = max(
+        cluster_results,
+        key=lambda x: cluster_results[x]["metrics"]["silhouette"]
+    )
+
+    print(f"\nBest performing model (Silhouette): {best_model}")
 
     # Add cluster labels to DataFrame for each method
     for name, res in cluster_results.items():
@@ -69,12 +100,14 @@ def main():
 
     # ── Step 5: Summarization ────────────────────────────────────────────────
     banner("Step 5 · Cluster Summarization")
-    from summarization import build_cluster_summaries, print_cluster_report
+    from summarization import build_cluster_summaries, print_cluster_report, evaluate_summaries
     all_summaries = {}
+    summary_scores = {}
     rep_map = {
         "TF-IDF + KMeans": "tfidf_lsa",
         "LDA + KMeans":    "lda",
         "SBERT + KMeans":  "sbert",
+        "SBERT + Hierarchical": "sbert",
     }
     for name, res in cluster_results.items():
         X_key = rep_map[name]
@@ -82,13 +115,24 @@ def main():
                                         features[X_key], name)
         all_summaries[name] = sums
         print_cluster_report(sums, name)
+        score = evaluate_summaries(sums, df)
+        summary_scores[name] = score
+
+        print(
+            f"[Summarization] {name} | "
+            f"R1={score['rouge1']:.3f} "
+            f"R2={score['rouge2']:.3f} "
+            f"RL={score['rougeL']:.3f} "
+            f"Cov={score['coverage']:.3f} "
+            f"Cent={score['proximity']:.3f}"
+        )
 
     # ── Step 6: Visualization ────────────────────────────────────────────────
     if not args.no_viz:
         banner("Step 6 · Visualization")
         from visualization import generate_all_visualizations
         fig_files = generate_all_visualizations(features, cluster_results, df,
-                                                  k=args.k)
+                                                  k=best_k)
         print(f"\nGenerated {len(fig_files)} figures in '{OUT_DIR}/'")
 
     # ── Step 7: HTML Report ──────────────────────────────────────────────────
@@ -96,7 +140,7 @@ def main():
         banner("Step 7 · HTML Report")
         from report import generate_html_report
         report_path = generate_html_report(df, features, cluster_results,
-                                            all_summaries)
+                                            all_summaries, summary_scores=summary_scores)
         print(f"Report: {report_path}")
 
     # ── Save results CSV ─────────────────────────────────────────────────────

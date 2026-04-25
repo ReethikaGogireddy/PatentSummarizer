@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from collections import Counter
 
 
 # ── Sentence-level extractive summarizer ────────────────────────────────────
@@ -128,6 +129,107 @@ def build_cluster_summaries(df: pd.DataFrame,
     return summaries
 
 
+# ── Rogue 1 ───────────────────────────────────────────────────
+def rouge1_score(summary, references):
+    """
+    Simple ROUGE-1 recall: overlap of unigrams
+    """
+    summary_tokens = summary.lower().split()
+    ref_tokens = " ".join(references).lower().split()
+
+    summary_counts = Counter(summary_tokens)
+    ref_counts = Counter(ref_tokens)
+
+    overlap = sum(min(summary_counts[w], ref_counts[w]) for w in summary_counts)
+
+    return overlap / max(1, len(ref_tokens))
+
+# ── Rouge 2 ───────────────────────────────────────────────────
+def _bigrams(tokens):
+    return list(zip(tokens, tokens[1:]))
+
+def rouge2_score(summary, references):
+    summary_tokens = summary.lower().split()
+    ref_tokens = " ".join(references).lower().split()
+
+    summary_bi = Counter(_bigrams(summary_tokens))
+    ref_bi = Counter(_bigrams(ref_tokens))
+
+    overlap = sum(min(summary_bi[k], ref_bi[k]) for k in summary_bi)
+    return overlap / max(1, sum(ref_bi.values()))
+
+def _lcs(a, b):
+    dp = [[0]*(len(b)+1) for _ in range(len(a)+1)]
+    for i in range(len(a)):
+        for j in range(len(b)):
+            if a[i] == b[j]:
+                dp[i+1][j+1] = dp[i][j] + 1
+            else:
+                dp[i+1][j+1] = max(dp[i][j+1], dp[i+1][j])
+    return dp[-1][-1]
+
+# ── Rougue L ───────────────────────────────────────────────────
+def rouge_l_score(summary, references):
+    summary_tokens = summary.lower().split()
+    ref_tokens = " ".join(references).lower().split()
+    lcs_len = _lcs(summary_tokens, ref_tokens)
+    return lcs_len / max(1, len(ref_tokens))
+
+
+def keyword_coverage(summary, keywords):
+    summary_words = set(summary.lower().split())
+    keywords = set([k.lower() for k in keywords])
+    if not keywords:
+        return 0.0
+    return len(summary_words & keywords) / len(keywords)
+
+
+def centroid_proximity(summary, cluster_texts):
+    if not cluster_texts:
+        return 0.0
+
+    vec = TfidfVectorizer(stop_words="english", max_features=2000)
+    texts = cluster_texts + [summary]
+    tfidf = vec.fit_transform(texts)
+
+    # Force proper numpy arrays (no matrix possible)
+    cluster_vec = tfidf[:-1].toarray()
+    cluster_vec = np.mean(cluster_vec, axis=0).reshape(1, -1)  
+
+    summary_vec = tfidf[-1].toarray().reshape(1, -1)           
+
+    sim = cosine_similarity(summary_vec, cluster_vec)[0][0]
+    return float(sim)
+
+def evaluate_summaries(summaries, df):
+    r1, r2, rl = [], [], []
+    cov, prox = [], []
+
+    for s in summaries:
+        refs = s["representative_titles"]
+        r1.append(rouge1_score(s["summary"], refs))
+        r2.append(rouge2_score(s["summary"], refs))
+        rl.append(rouge_l_score(s["summary"], refs))
+
+        cov.append(keyword_coverage(s["summary"], s["keywords"]))
+
+        # cluster texts for proximity
+        cluster_texts = df[df["title"].isin(refs)]["text"].tolist()
+
+        if not cluster_texts:
+            prox.append(0.0)
+        else:
+            prox.append(centroid_proximity(s["summary"], cluster_texts))
+
+    return {
+        "rouge1": float(np.mean(r1)),
+        "rouge2": float(np.mean(r2)),
+        "rougeL": float(np.mean(rl)),
+        "coverage": float(np.mean(cov)),
+        "proximity": float(np.mean(prox))
+    }
+
+
 def print_cluster_report(summaries: list[dict], method_name: str = ""):
     header = f"{'─'*60}\n CLUSTER REPORT — {method_name}\n{'─'*60}"
     print(header)
@@ -141,6 +243,7 @@ def print_cluster_report(summaries: list[dict], method_name: str = ""):
     print()
 
 
+    
 if __name__ == "__main__":
     from ingestion import load_corpus
     from preprocessing import preprocess_corpus
@@ -153,3 +256,5 @@ if __name__ == "__main__":
         sums = build_cluster_summaries(df, res["labels"],
                                         feats["sbert"], name)
         print_cluster_report(sums, name)
+        score = evaluate_summaries(sums,df)
+        print(f"[Summarization] {name} ROUGE-1: {score:.4f}\n")
