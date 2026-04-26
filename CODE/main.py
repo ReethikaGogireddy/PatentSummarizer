@@ -1,7 +1,11 @@
 """
 main.py -- End-to-end Patent Semantic Analysis Pipeline
 Usage:
-    python CODE/main.py [--source synthetic|patentsview] [--n 48] [--k 6] [--topics 6]
+    python CODE/main.py [--source synthetic|bigpatent|patentsview] [--n 48] [--k 6] [--topics 6]
+
+Examples:
+    py -3.11 CODE/main.py --source synthetic --n 48 --k 6 --topics 6
+    py -3.11 CODE/main.py --source bigpatent --n 5000 --k 5 --topics 5
 """
 
 import argparse

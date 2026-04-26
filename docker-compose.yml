@@ -17,7 +17,7 @@ services:
         --k 6
         --topics 6
 
-  # ── PatentsView API (real patents) ─────────────────────────────────────────
+  # ── Real USPTO patents via HuggingFace big_patent (5,000 docs) ────────────
   patent-pipeline-real:
     image: patent-pipeline:latest
     container_name: patent-pipeline-real
@@ -25,10 +25,10 @@ services:
       - ./EVALUATIONS:/app/EVALUATIONS
     command: >
       python CODE/main.py
-        --source patentsview
-        --n 500
-        --k 8
-        --topics 8
+        --source bigpatent
+        --n 5000
+        --k 5
+        --topics 5
 
   # ── Quick smoke-test (no viz, no report) ──────────────────────────────────
   patent-pipeline-test:

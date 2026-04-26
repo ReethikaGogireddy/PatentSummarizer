@@ -151,7 +151,7 @@ header_bar(sl, "System Architecture", "7-stage end-to-end pipeline")
 footer(sl)
 
 stages = [
-    ("1. Ingestion",       "Real USPTO patents\nHuggingFace big_patent\n500 patents / 5 domains"),
+    ("1. Ingestion",       "Real USPTO patents\nHuggingFace big_patent\n5,000 patents / 5 domains"),
     ("2. Preprocessing",   "Lowercasing, punct strip\nStopword removal\nLemmatisation"),
     ("3. Feature Eng.",    "TF-IDF + LSA\nLDA topics\nSentence-BERT"),
     ("4. Clustering",      "K-Means++\nHierarchical (Ward)\nOptimal-k search"),
