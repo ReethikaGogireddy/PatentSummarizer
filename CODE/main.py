@@ -17,7 +17,7 @@ os.makedirs(OUT_DIR, exist_ok=True)
 def parse_args():
     p = argparse.ArgumentParser(description="Patent Semantic Analysis Pipeline")
     p.add_argument("--source",  default="synthetic",
-                   choices=["synthetic", "patentsview"],
+                   choices=["synthetic", "patentsview", "bigpatent"],
                    help="Data source (default: synthetic)")
     p.add_argument("--n",       type=int, default=48,
                    help="Number of patents to load (default: 48)")

@@ -206,13 +206,75 @@ def fetch_patentsview(n: int = 200, per_page: int = 100) -> pd.DataFrame:
     return df
 
 
+def load_bigpatent(n: int = 500) -> pd.DataFrame:
+    """
+    Load real USPTO patents from the HuggingFace big_patent dataset.
+    Pulls n//5 patents from each of 5 CPC sections covering the 6 project domains.
+    Falls back to synthetic corpus if the dataset is unavailable.
+    """
+    section_map = [
+        ("g", "G06N", "Machine Learning / AI"),
+        ("h", "H01L", "Semiconductor / Electronics"),
+        ("a", "A61B", "Biotechnology / Medical"),
+        ("b", "B60W", "Autonomous Vehicles"),
+        ("f", "H02S", "Renewable Energy"),
+    ]
+    per_section = max(1, n // len(section_map))
+    records = []
+
+    try:
+        from datasets import load_dataset
+    except ImportError:
+        print("[Ingestion] 'datasets' package not installed. Run: pip install datasets")
+        return load_synthetic_corpus(n)
+
+    for sec, cpc, domain in section_map:
+        print(f"[Ingestion] Loading section '{sec}' ({domain}) ...")
+        try:
+            ds = load_dataset("big_patent", sec, split="train", streaming=True)
+            count = 0
+            for ex in ds:
+                abstract = (ex.get("abstract") or "").strip()
+                if len(abstract) < 40:
+                    continue
+                # Derive a title from the first sentence of the abstract
+                first_sent = abstract.split(". ")[0]
+                title = first_sent[:100].strip().rstrip(".")
+                if len(title) < 10:
+                    title = abstract[:80].strip()
+                pid = f"{sec.upper()}{cpc[:3]}{len(records)+1:05d}"
+                records.append({
+                    "patent_id": pid,
+                    "title":     title,
+                    "abstract":  abstract,
+                    "cpc_code":  cpc,
+                    "text":      title + ". " + abstract,
+                })
+                count += 1
+                if count >= per_section:
+                    break
+            print(f"  Loaded {count} patents from section '{sec}'.")
+        except Exception as exc:
+            print(f"[Ingestion] Section '{sec}' failed: {exc}. Skipping.")
+
+    if not records:
+        print("[Ingestion] big_patent unavailable. Falling back to synthetic corpus.")
+        return load_synthetic_corpus(n)
+
+    df = pd.DataFrame(records)
+    print(f"[Ingestion] Loaded {len(df)} real patents from big_patent (HuggingFace).")
+    return df
+
+
 def load_corpus(source: str = "synthetic", n: int = 48) -> pd.DataFrame:
     """
     Main entry point.
-    source: 'synthetic' | 'patentsview'
+    source: 'synthetic' | 'patentsview' | 'bigpatent'
     """
     if source == "patentsview":
         return fetch_patentsview(n=n)
+    if source == "bigpatent":
+        return load_bigpatent(n=n)
     return load_synthetic_corpus(n=n)
 
 
