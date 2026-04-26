@@ -8,6 +8,7 @@ from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches, Pt
+from PIL import Image
 import os
 
 # Colors
@@ -78,6 +79,29 @@ def footer(slide, text="Group 22  |  Project 9  |  CSE 573 Spring 2026  |  Arizo
     txt(slide, text, 0.3, 7.17, 13, 0.28,
         size=11, color=RGBColor(0xa8, 0xd8, 0xea))
 
+def fit_picture(slide, path, l, t, max_w, max_h):
+    """Add a picture to slide centered in the (l,t,max_w,max_h) box,
+    preserving the source image's aspect ratio. Returns the picture shape."""
+    if not os.path.exists(path):
+        txt(slide, f"[Missing: {os.path.basename(path)}]",
+            l, t + max_h/2 - 0.2, max_w, 0.4,
+            size=14, color=NAVY, align=PP_ALIGN.CENTER, italic=True)
+        return None
+    img_w, img_h = Image.open(path).size
+    src_ratio = img_w / img_h
+    box_ratio = max_w / max_h
+    if src_ratio >= box_ratio:
+        # image is wider than the box -> fit width, scale height
+        w = max_w
+        h = max_w / src_ratio
+    else:
+        h = max_h
+        w = max_h * src_ratio
+    cx = l + (max_w - w) / 2
+    cy = t + (max_h - h) / 2
+    return slide.shapes.add_picture(path, Inches(cx), Inches(cy),
+                                     Inches(w), Inches(h))
+
 def bullet_block(slide, items, l, t, w, h,
                  size=16, color=RGBColor(0x22, 0x22, 0x22),
                  bullet="•"):
@@ -147,33 +171,92 @@ txt(sl, "Our system automates patent discovery using TF-IDF, LDA, and Sentence-B
 
 sl = add_slide()
 rect(sl, 0, 0, 13.33, 7.5, fill=RGBColor(0xf4, 0xf6, 0xf9))
-header_bar(sl, "System Architecture", "7-stage end-to-end pipeline")
+header_bar(sl, "System Architecture", "Two-stage pipeline: representation, then analysis")
 footer(sl)
 
-stages = [
-    ("1. Ingestion",       "Real USPTO patents\nHuggingFace big_patent\n5,000 patents / 5 domains"),
-    ("2. Preprocessing",   "Lowercasing, punct strip\nStopword removal\nLemmatisation"),
-    ("3. Feature Eng.",    "TF-IDF + LSA\nLDA topics\nSentence-BERT"),
-    ("4. Clustering",      "K-Means++\nHierarchical (Ward)\nOptimal-k search"),
-    ("5. Summarization",   "TF-IDF sentence rank\nKeyword extraction\nROUGE evaluation"),
-    ("6. Visualization",   "t-SNE / PCA 2D\nMetrics bar chart\nTopic heatmap"),
-    ("7. Report",          "Self-contained HTML\nBase64 embedded imgs\nAll metrics"),
-]
-cols = len(stages)
-box_w = 1.65
-gap   = (13.33 - cols * box_w) / (cols + 1)
+# Two rows of stages with grouped visual hierarchy.
+# Row 1 (Input + Representation): 3 boxes
+# Row 2 (Analysis + Output):       4 boxes
 
-for i, (title, body) in enumerate(stages):
-    x = gap + i * (box_w + gap)
-    rect(sl, x, 1.6, box_w, 4.8, fill=NAVY)
-    rect(sl, x, 1.6, box_w, 0.55, fill=GOLD)
-    txt(sl, title, x + 0.05, 1.62, box_w - 0.1, 0.5,
-        size=11, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
-    txt(sl, body, x + 0.08, 2.25, box_w - 0.16, 3.8,
-        size=10, color=WHITE, align=PP_ALIGN.CENTER)
-    if i < cols - 1:
-        txt(sl, "->", x + box_w + gap/2 - 0.1, 3.85, 0.3, 0.4,
-            size=14, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
+LIGHT_NAVY = RGBColor(0x16, 0x40, 0x70)
+DEEP_NAVY  = RGBColor(0x0a, 0x22, 0x40)
+
+row1 = [
+    ("1. Ingestion",       "Real USPTO patents\nHuggingFace big_patent\n5,000 docs across\n5 CPC domains"),
+    ("2. Preprocessing",   "Lowercase + punct strip\nNLTK stopwords removed\nLemmatisation\n(WordNet)"),
+    ("3. Feature Eng.",    "TF-IDF + LSA  (50d)\nLDA topics  (3d)\nSentence-BERT  (384d)\nall-MiniLM-L6-v2"),
+]
+row2 = [
+    ("4. Clustering",      "K-Means++ on 3 reps\nHierarchical Ward\non SBERT\n+ optimal-k search"),
+    ("5. Summarization",   "Extractive sentence\nranking via TF-IDF\nROUGE-1/2/L\nKeyword coverage"),
+    ("6. Visualization",   "t-SNE / PCA 2D\nMetrics bar chart\nTopic heatmap\nClustering report"),
+    ("7. Report + Demo",   "Self-contained HTML\n+ Streamlit web app\nGroup22 PPTX deck\nGitHub repo"),
+]
+
+# Geometry
+TOP_Y     = 1.65
+ROW_H     = 2.40
+ROW_GAP   = 0.45            # vertical gap between row 1 and row 2
+HEADER_H  = 0.50            # gold header strip height
+
+def stage_box(x, y, w, h, num_title, body, fill=LIGHT_NAVY):
+    rect(sl, x, y, w, h, fill=fill)
+    rect(sl, x, y, w, HEADER_H, fill=GOLD)
+    txt(sl, num_title, x + 0.08, y + 0.07, w - 0.16, HEADER_H - 0.1,
+        size=13, bold=True, color=DEEP_NAVY, align=PP_ALIGN.CENTER)
+    txt(sl, body, x + 0.15, y + HEADER_H + 0.12, w - 0.3, h - HEADER_H - 0.2,
+        size=11, color=WHITE, align=PP_ALIGN.CENTER)
+
+def arrow_right(x, y, w=0.45, color=NAVY):
+    """Simple right-pointing arrow shape."""
+    arrow = sl.shapes.add_shape(13, Inches(x), Inches(y), Inches(w), Inches(0.35))
+    arrow.fill.solid(); arrow.fill.fore_color.rgb = color
+    arrow.line.fill.background()
+
+def arrow_down(x, y, h=0.35, color=NAVY):
+    arrow = sl.shapes.add_shape(14, Inches(x), Inches(y), Inches(0.35), Inches(h))
+    arrow.fill.solid(); arrow.fill.fore_color.rgb = color
+    arrow.line.fill.background()
+
+# Row 1: 3 boxes evenly spaced
+n1 = len(row1)
+gap1 = 0.55
+total1 = (13.33 - 2 * 0.6 - (n1 - 1) * gap1)   # 0.6 left/right margin
+box1_w = total1 / n1
+for i, (title, body) in enumerate(row1):
+    x = 0.6 + i * (box1_w + gap1)
+    stage_box(x, TOP_Y, box1_w, ROW_H, title, body, fill=LIGHT_NAVY)
+    if i < n1 - 1:
+        ax = x + box1_w + (gap1 - 0.45) / 2
+        ay = TOP_Y + ROW_H / 2 - 0.18
+        arrow_right(ax, ay)
+
+# Down arrow at end of row 1 → start of row 2 right side (we read row 2 left to right too)
+y_after_row1 = TOP_Y + ROW_H
+y_before_row2 = y_after_row1 + ROW_GAP
+# Place a single down arrow in the middle of the slide between rows
+arrow_down(13.33 / 2 - 0.18, y_after_row1 + 0.05, h=ROW_GAP - 0.1)
+
+# Row 2: 4 boxes evenly spaced
+n2 = len(row2)
+gap2 = 0.4
+total2 = (13.33 - 2 * 0.6 - (n2 - 1) * gap2)
+box2_w = total2 / n2
+for i, (title, body) in enumerate(row2):
+    x = 0.6 + i * (box2_w + gap2)
+    stage_box(x, y_before_row2, box2_w, ROW_H, title, body,
+              fill=DEEP_NAVY)
+    if i < n2 - 1:
+        ax = x + box2_w + (gap2 - 0.45) / 2
+        ay = y_before_row2 + ROW_H / 2 - 0.18
+        arrow_right(ax, ay)
+
+# Bottom caption
+cap_y = y_before_row2 + ROW_H + 0.15
+txt(sl, "Stages 1-3 build three parallel document representations.  "
+        "Stages 4-7 cluster, summarise, visualise, and deliver.",
+    0.6, cap_y, 12.1, 0.4, size=12, italic=True,
+    color=RGBColor(0x55, 0x55, 0x55), align=PP_ALIGN.CENTER)
 
 
 # ── Slide 4: Dataset ─────────────────────────────────────────────────────────
@@ -314,11 +397,13 @@ rect(sl, 0, 0, 13.33, 7.5, fill=RGBColor(0xf4, 0xf6, 0xf9))
 header_bar(sl, "Cluster Visualizations", "t-SNE 2D projections of all four clustering methods")
 footer(sl)
 
-img_path = os.path.join(OUT_DIR, "all_projections_tsne.png")
-if os.path.exists(img_path):
-    sl.shapes.add_picture(img_path, Inches(0.4), Inches(1.55), Inches(12.53), Inches(5.35))
-else:
-    txt(sl, "[all_projections_tsne.png not found]", 0.5, 3, 12, 0.5, size=14, color=NAVY)
+# all_projections_tsne is 3.92:1 — fit it preserving that wide ratio
+fit_picture(sl, os.path.join(OUT_DIR, "all_projections_tsne.png"),
+            l=0.4, t=2.4, max_w=12.53, max_h=4.0)
+txt(sl, "Each panel shows a 2D t-SNE projection of patents, colored by cluster.  "
+        "TF-IDF and LDA produce visibly tighter, more separable clusters than SBERT on this corpus.",
+    0.4, 6.55, 12.53, 0.6, size=12, italic=True,
+    color=RGBColor(0x55, 0x55, 0x55), align=PP_ALIGN.CENTER)
 
 
 # ── Slide 8: Metrics Comparison Chart ────────────────────────────────────────
@@ -328,11 +413,9 @@ rect(sl, 0, 0, 13.33, 7.5, fill=RGBColor(0xf4, 0xf6, 0xf9))
 header_bar(sl, "Metrics Comparison", "Side-by-side bar chart: Silhouette, Davies-Bouldin, Stability ARI")
 footer(sl)
 
-img_path = os.path.join(OUT_DIR, "metrics_comparison.png")
-if os.path.exists(img_path):
-    sl.shapes.add_picture(img_path, Inches(0.7), Inches(1.55), Inches(11.93), Inches(5.35))
-else:
-    txt(sl, "[metrics_comparison.png not found]", 0.5, 3, 12, 0.5, size=14, color=NAVY)
+# metrics_comparison is 2.02:1 — fit cleanly without stretch
+fit_picture(sl, os.path.join(OUT_DIR, "metrics_comparison.png"),
+            l=0.7, t=1.6, max_w=11.93, max_h=5.3)
 
 
 # ── Slide 9: Summarization Evaluation ────────────────────────────────────────
@@ -385,16 +468,16 @@ rect(sl, 0, 0, 13.33, 7.5, fill=RGBColor(0xf4, 0xf6, 0xf9))
 header_bar(sl, "LDA Topic Modeling", "Optimal coherence at 3 topics (coherence = 0.071)")
 footer(sl)
 
-lda_path = os.path.join(OUT_DIR, "lda_topics.png")
-heat_path = os.path.join(OUT_DIR, "doc_topic_heatmap.png")
+# lda_topics ratio 1.33:1 — keep it on the left half
+# doc_topic_heatmap ratio 1.06:1 (near square) — right half
+fit_picture(sl, os.path.join(OUT_DIR, "lda_topics.png"),
+            l=0.3, t=1.6, max_w=6.4, max_h=5.2)
+fit_picture(sl, os.path.join(OUT_DIR, "doc_topic_heatmap.png"),
+            l=6.9, t=1.6, max_w=6.1, max_h=5.2)
 
-if os.path.exists(lda_path):
-    sl.shapes.add_picture(lda_path, Inches(0.3), Inches(1.55), Inches(6.4), Inches(5.3))
-if os.path.exists(heat_path):
-    sl.shapes.add_picture(heat_path, Inches(6.9), Inches(1.55), Inches(6.1), Inches(5.3))
-
-txt(sl, "Top words per topic (left) and document-topic probability heatmap (right)",
-    0.4, 6.95, 12.5, 0.4, size=11, italic=True, color=RGBColor(0x55, 0x55, 0x55))
+txt(sl, "Top words per topic (left)  ·  Document-topic probability heatmap (right)",
+    0.4, 6.95, 12.5, 0.4, size=12, italic=True,
+    color=RGBColor(0x55, 0x55, 0x55), align=PP_ALIGN.CENTER)
 
 
 # ── Slide 11: Optimal k Selection ────────────────────────────────────────────
@@ -404,15 +487,15 @@ rect(sl, 0, 0, 13.33, 7.5, fill=RGBColor(0xf4, 0xf6, 0xf9))
 header_bar(sl, "Optimal k Selection", "Silhouette & Davies-Bouldin vs k (SBERT embeddings)")
 footer(sl)
 
-ok_path = os.path.join(OUT_DIR, "optimal_k_SBERT.png")
-if os.path.exists(ok_path):
-    sl.shapes.add_picture(ok_path, Inches(1.5), Inches(1.55), Inches(10.33), Inches(4.8))
+# optimal_k_SBERT ratio 2.04:1 — fit to ~10 inch wide
+fit_picture(sl, os.path.join(OUT_DIR, "optimal_k_SBERT.png"),
+            l=1.5, t=1.6, max_w=10.33, max_h=4.6)
 
 bullet_block(sl, [
     "k evaluated from 2 to 9 on SBERT embeddings using Silhouette and Davies-Bouldin",
     "Diagnostic optimal k = 2 by silhouette, but k = 5 chosen for clustering to match the 5 CPC sections",
     "Low SBERT silhouette values are expected: real patents have nuanced, overlapping technical language",
-], 0.5, 6.5, 12.3, 0.85, size=12, color=RGBColor(0x22, 0x22, 0x22))
+], 0.5, 6.4, 12.3, 0.85, size=12, color=RGBColor(0x22, 0x22, 0x22))
 
 
 # ── Slide 12: Key Results Summary ────────────────────────────────────────────
