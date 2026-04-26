@@ -7,6 +7,8 @@ Usage:
 import argparse
 import time
 import os
+import json
+import numpy as np
 
 # Always write outputs to <repo_root>/EVALUATIONS/ regardless of CWD
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -149,6 +151,30 @@ def main():
     csv_path = os.path.join(OUT_DIR, "patent_clusters.csv")
     df.drop(columns=["tokens"], errors="ignore").to_csv(csv_path, index=False)
     print(f"\nCluster assignments saved -> {csv_path}")
+
+    # -- Save metrics + summaries JSON for Streamlit demo --------------------
+    results_json = {
+        "source":      args.source,
+        "n_patents":   int(len(df)),
+        "k":           int(best_k),
+        "n_topics":    int(best_topics),
+        "best_model":  best_model,
+        "metrics":     {name: {kk: float(vv) if isinstance(vv, (int, float, np.floating, np.integer)) else vv
+                              for kk, vv in res["metrics"].items()
+                              if not hasattr(vv, "shape")}
+                       for name, res in cluster_results.items()},
+        "summary_scores": summary_scores,
+        "summaries":   {name: [{kk: (vv if not hasattr(vv, "tolist") else vv.tolist())
+                               for kk, vv in s.items()} for s in sums]
+                       for name, sums in all_summaries.items()},
+        "cpc_counts":  df["cpc_code"].value_counts().to_dict() if "cpc_code" in df.columns else {},
+        "lda_coherence": float(features.get("lda_coherence", 0.0)),
+        "elapsed_sec": float(time.time() - t0),
+    }
+    json_path = os.path.join(OUT_DIR, "results.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(results_json, f, indent=2, default=str)
+    print(f"Metrics JSON saved -> {json_path}")
 
     elapsed = time.time() - t0
     banner(f"Pipeline Complete in {elapsed:.1f}s")

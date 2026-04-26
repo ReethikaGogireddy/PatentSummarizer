@@ -1,0 +1,238 @@
+{
+  "source": "bigpatent",
+  "n_patents": 500,
+  "k": 2,
+  "n_topics": 2,
+  "best_model": "LDA + KMeans",
+  "metrics": {
+    "TF-IDF + KMeans": {
+      "silhouette": 0.05853777566029979,
+      "davies_bouldin": 4.956513312557849,
+      "ari": 0.08978317868752747,
+      "nmi": 0.14275598642969187,
+      "stability_ari": 0.9418661707485307
+    },
+    "LDA + KMeans": {
+      "silhouette": 0.9072434537796744,
+      "davies_bouldin": 0.28063165646399757,
+      "ari": 0.10878189667535067,
+      "nmi": 0.13242044152299892,
+      "stability_ari": 1.0
+    },
+    "SBERT + KMeans": {
+      "silhouette": 0.05532660707831383,
+      "davies_bouldin": 5.633478880799494,
+      "ari": 0.16753892346236113,
+      "nmi": 0.20650503584739152,
+      "stability_ari": 0.9372118941715524
+    },
+    "SBERT + Hierarchical": {
+      "silhouette": 0.045665714889764786,
+      "davies_bouldin": 6.32708445239853,
+      "ari": 0.09146514833641313,
+      "nmi": 0.12226293627339774,
+      "stability_ari": 0.9372118941715524
+    }
+  },
+  "summary_scores": {
+    "TF-IDF + KMeans": {
+      "rouge1": 0.3025583982202447,
+      "rouge2": 0.03571428571428571,
+      "rougeL": 0.21635150166852057,
+      "coverage": 0.1875,
+      "proximity": 0.03618497541006483
+    },
+    "LDA + KMeans": {
+      "rouge1": 0.24776785714285715,
+      "rouge2": 0.0,
+      "rougeL": 0.1986607142857143,
+      "coverage": 0.1875,
+      "proximity": 0.03414071201550986
+    },
+    "SBERT + KMeans": {
+      "rouge1": 0.22142857142857142,
+      "rouge2": 0.0,
+      "rougeL": 0.17857142857142855,
+      "coverage": 0.1875,
+      "proximity": 0.01945960256785168
+    },
+    "SBERT + Hierarchical": {
+      "rouge1": 0.2571428571428571,
+      "rouge2": 0.018518518518518517,
+      "rougeL": 0.17857142857142855,
+      "coverage": 0.0,
+      "proximity": 0.006929726945148863
+    }
+  },
+  "summaries": {
+    "TF-IDF + KMeans": [
+      {
+        "cluster_id": 0,
+        "size": 147,
+        "keywords": [
+          "data",
+          "signal",
+          "method",
+          "control",
+          "image",
+          "network",
+          "processing",
+          "signals"
+        ],
+        "summary": "Methods and systems are provided for obtaining information related to a customer service location an. Methods and systems are provided for obtaining information related to a customer service location and directions for routing a service technician from one customer service location to another. One embodiment includes requesting at least one set of coordinates associated with the customer service l",
+        "representative_titles": [
+          "A data processing system is provided for identifying risks associated with abnormal conditions of ne",
+          "The present invention discloses a single-wire asynchronous serial interface, and a method for transm"
+        ]
+      },
+      {
+        "cluster_id": 1,
+        "size": 353,
+        "keywords": [
+          "second",
+          "surface",
+          "valve",
+          "having",
+          "device",
+          "includes",
+          "member",
+          "portion"
+        ],
+        "summary": "A rotating Doppler Frequency shifter comprises spiral members which surround a first mirror affixed. A rotating Doppler Frequency shifter comprises spiral members which surround a first mirror affixed to a rotating shaft, and a second mirror affixed to an arm which extends from the shaft and rotates therewith. Each spiral member has a reflective inner surface which is shaped such as to reflect a s",
+        "representative_titles": [
+          "A hydraulic motor defined by a relatively compact structural design and capable of delivering high t",
+          "An elongate housing is provided for removable attachment to either a self-propelled windrower or con"
+        ]
+      }
+    ],
+    "LDA + KMeans": [
+      {
+        "cluster_id": 0,
+        "size": 222,
+        "keywords": [
+          "signal",
+          "data",
+          "method",
+          "image",
+          "device",
+          "control",
+          "apparatus",
+          "unit"
+        ],
+        "summary": "Methods and systems are provided for obtaining information related to a customer service location an. Methods and systems are provided for obtaining information related to a customer service location and directions for routing a service technician from one customer service location to another. One embodiment includes requesting at least one set of coordinates associated with the customer service l",
+        "representative_titles": [
+          "A method for evaluating an end-user&#39;s subjective assessment of streaming media quality includes",
+          "The apparatus provides for the determination of the instantaneous phase in the respiratory cycle, su"
+        ]
+      },
+      {
+        "cluster_id": 1,
+        "size": 278,
+        "keywords": [
+          "second",
+          "valve",
+          "having",
+          "member",
+          "includes",
+          "surface",
+          "portion",
+          "assembly"
+        ],
+        "summary": "A rotating Doppler Frequency shifter comprises spiral members which surround a first mirror affixed. A rotating Doppler Frequency shifter comprises spiral members which surround a first mirror affixed to a rotating shaft, and a second mirror affixed to an arm which extends from the shaft and rotates therewith. Each spiral member has a reflective inner surface which is shaped such as to reflect a s",
+        "representative_titles": [
+          "The invention relates to improvements in drying webs and is applicable with particular advantage, al",
+          "A decorative and safety assembly for dressing a trampoline which can be easily secured to and remove"
+        ]
+      }
+    ],
+    "SBERT + KMeans": [
+      {
+        "cluster_id": 0,
+        "size": 248,
+        "keywords": [
+          "signal",
+          "data",
+          "method",
+          "control",
+          "device",
+          "image",
+          "invention",
+          "apparatus"
+        ],
+        "summary": "Methods and systems are provided for obtaining information related to a customer service location an. Methods and systems are provided for obtaining information related to a customer service location and directions for routing a service technician from one customer service location to another. One embodiment includes requesting at least one set of coordinates associated with the customer service l",
+        "representative_titles": [
+          "A method has been invented of providing feedback regarding tolerance for a dimension of a concrete b",
+          "Provision is made in a method and a device for detecting elementary particles such as for example pr"
+        ]
+      },
+      {
+        "cluster_id": 1,
+        "size": 252,
+        "keywords": [
+          "valve",
+          "second",
+          "member",
+          "surface",
+          "assembly",
+          "includes",
+          "having",
+          "portion"
+        ],
+        "summary": "A rotating Doppler Frequency shifter comprises spiral members which surround a first mirror affixed. A rotating Doppler Frequency shifter comprises spiral members which surround a first mirror affixed to a rotating shaft, and a second mirror affixed to an arm which extends from the shaft and rotates therewith. Each spiral member has a reflective inner surface which is shaped such as to reflect a s",
+        "representative_titles": [
+          "An assembly for maintaining tension in a drive belt features a housing mounted on a base",
+          "An apparatus and method converts an existing printing press to offset printing"
+        ]
+      }
+    ],
+    "SBERT + Hierarchical": [
+      {
+        "cluster_id": 0,
+        "size": 312,
+        "keywords": [
+          "second",
+          "valve",
+          "surface",
+          "includes",
+          "having",
+          "apparatus",
+          "member",
+          "portion"
+        ],
+        "summary": "An \u201cownership tag\u201d in a special area of memory of a computer system identifies an owner of the compu. An \u201cownership tag\u201d in a special area of memory of a computer system identifies an owner of the computer system by displaying the ownership tag during initialization of the computer system. The ownership tag may be presented during the installation and execution of the Basic Input Output System (BI",
+        "representative_titles": [
+          "An apparatus and method converts an existing printing press to offset printing",
+          "An assembly for maintaining tension in a drive belt features a housing mounted on a base"
+        ]
+      },
+      {
+        "cluster_id": 1,
+        "size": 188,
+        "keywords": [
+          "data",
+          "signal",
+          "image",
+          "method",
+          "device",
+          "invention",
+          "processing",
+          "network"
+        ],
+        "summary": "Methods and systems are provided for obtaining information related to a customer service location an. Methods and systems are provided for obtaining information related to a customer service location and directions for routing a service technician from one customer service location to another. One embodiment includes requesting at least one set of coordinates associated with the customer service l",
+        "representative_titles": [
+          "A method has been invented of providing feedback regarding tolerance for a dimension of a concrete b",
+          "Provision is made in a method and a device for detecting elementary particles such as for example pr"
+        ]
+      }
+    ]
+  },
+  "cpc_counts": {
+    "G06N": 100,
+    "H01L": 100,
+    "A61B": 100,
+    "B60W": 100,
+    "H02S": 100
+  },
+  "lda_coherence": 0.07120460577950315,
+  "elapsed_sec": 128.67023491859436
+}
