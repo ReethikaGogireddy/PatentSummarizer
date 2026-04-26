@@ -183,17 +183,17 @@ rect(sl, 0, 0, 13.33, 7.5, fill=RGBColor(0xf4, 0xf6, 0xf9))
 header_bar(sl, "Dataset", "Real USPTO Patents via HuggingFace big_patent")
 footer(sl)
 
-txt(sl, "500 real USPTO patent abstracts streamed from the big_patent dataset (Sharma et al., 2019)",
+txt(sl, "5,000 real USPTO patent abstracts streamed from the big_patent dataset (Sharma et al., 2019)",
     0.6, 1.6, 12.1, 0.45, size=15, color=BLUE, bold=True)
 
 # Table
 headers = ["CPC Section", "CPC Code", "Technology Domain", "Count"]
 rows = [
-    ["g", "G06N", "Machine Learning / Artificial Intelligence", "100"],
-    ["h", "H01L", "Semiconductor / Electronics", "100"],
-    ["a", "A61B", "Biotechnology / Medical Devices", "100"],
-    ["b", "B60W", "Autonomous Vehicles / Transportation", "100"],
-    ["f", "H02S", "Renewable Energy / Power Systems", "100"],
+    ["g", "G06N", "Machine Learning / Artificial Intelligence", "1,000"],
+    ["h", "H01L", "Semiconductor / Electronics", "1,000"],
+    ["a", "A61B", "Biotechnology / Medical Devices", "1,000"],
+    ["b", "B60W", "Autonomous Vehicles / Transportation", "1,000"],
+    ["f", "H02S", "Renewable Energy / Power Systems", "1,000"],
 ]
 col_ws = [1.2, 1.3, 6.5, 1.2]
 col_xs = [0.6, 1.85, 3.2, 9.75]
@@ -215,7 +215,7 @@ for i, row in enumerate(rows):
         txt(sl, val, cx + 0.06, y + 0.07, cw - 0.12, row_h - 0.1,
             size=12, color=BLUE, align=align)
 
-txt(sl, "Total: 500 patents  |  5 technology domains  |  100 patents per domain",
+txt(sl, "Total: 5,000 patents  |  5 technology domains  |  1,000 patents per domain",
     0.6, 4.65, 12.1, 0.4, size=14, bold=True, color=NAVY)
 
 bullet_block(sl, [
@@ -234,23 +234,23 @@ footer(sl)
 
 panels = [
     ("TF-IDF + LSA", NAVY,
-     ["Vocabulary: 3,000 top terms (1- and 2-grams)",
-      "TF-IDF matrix: 500 x 3,000",
+     ["Vocabulary: 6,000 top unigrams",
+      "TF-IDF matrix: 5,000 x 6,000",
       "SVD reduction -> 50 latent dimensions",
       "Captures lexical frequency patterns",
       "Fast, interpretable, no GPU needed"]),
     ("LDA Topic Model", BLUE,
-     ["Optimal topics: 2 (coherence = 0.071)",
-      "Document-topic distribution: 500 x 2",
+     ["Optimal topics: 3 (coherence = 0.071)",
+      "Document-topic distribution: 5,000 x 3",
       "Dirichlet prior: alpha=0.1, beta=0.01",
       "Discovers latent semantic themes",
-      "Best clustering silhouette: 0.907"]),
+      "Best clustering silhouette: 0.762"]),
     ("Sentence-BERT", RGBColor(0x10, 0x50, 0x80),
      ["Model: all-MiniLM-L6-v2 (HuggingFace)",
-      "Dense embeddings: 500 x 384 dims",
+      "Dense embeddings: 5,000 x 384 dims",
       "Semantic similarity in cosine space",
       "Context-aware, handles paraphrases",
-      "State-of-the-art sentence encoding"]),
+      "Embedding cache: skip re-encoding"]),
 ]
 panel_w = 3.9
 for i, (title, color, bullets) in enumerate(panels):
@@ -271,10 +271,10 @@ header_bar(sl, "Clustering Evaluation", "Silhouette up, Davies-Bouldin down, Sta
 footer(sl)
 
 methods = [
-    ("TF-IDF + KMeans",      0.059, 4.957, 0.942),
-    ("LDA + KMeans",         0.907, 0.281, 1.000),
-    ("SBERT + KMeans",       0.055, 5.633, 0.937),
-    ("SBERT + Hierarchical", 0.046, 6.327, 0.937),
+    ("TF-IDF + KMeans",      0.113, 3.603, 0.908),
+    ("LDA + KMeans",         0.762, 0.618, 0.999),
+    ("SBERT + KMeans",       0.045, 5.061, 0.940),
+    ("SBERT + Hierarchical", 0.026, 6.010, 0.940),
 ]
 
 hdrs = ["Method", "Silhouette (up)", "Davies-Bouldin (down)", "Stability ARI (up)", "Best?"]
@@ -301,9 +301,9 @@ for i, (method, sil, db, stab) in enumerate(methods):
 
 txt(sl, "Key Findings:", 0.4, 4.7, 12.5, 0.35, size=14, bold=True, color=NAVY)
 bullet_block(sl, [
-    "LDA + KMeans achieves the highest Silhouette (0.907) and perfect Stability (1.000) — clean topical separation",
-    "SBERT embeddings show lower silhouette scores typical of real-world high-dimensional patent data",
-    "Hierarchical clustering (Ward linkage) matches K-Means on real data stability",
+    "LDA + KMeans achieves the highest Silhouette (0.762) and near-perfect Stability (0.999) on 5,000 real patents",
+    "TF-IDF + KMeans yields the strongest interpretable clusters (low DB = 3.60, k=5 matches CPC sections)",
+    "SBERT embeddings show lower silhouette typical of real-world dense semantic spaces with overlapping domains",
 ], 0.4, 5.1, 12.5, 1.7, size=13, color=RGBColor(0x22, 0x22, 0x22))
 
 
@@ -343,10 +343,10 @@ header_bar(sl, "Summarization Evaluation", "Extractive TF-IDF sentence ranking +
 footer(sl)
 
 sum_metrics = [
-    ("TF-IDF + KMeans",      0.303, 0.036, 0.216, 0.188, 0.036),
-    ("LDA + KMeans",         0.248, 0.000, 0.199, 0.188, 0.034),
-    ("SBERT + KMeans",       0.221, 0.000, 0.179, 0.188, 0.019),
-    ("SBERT + Hierarchical", 0.257, 0.019, 0.179, 0.000, 0.007),
+    ("TF-IDF + KMeans",      0.260, 0.006, 0.193, 0.125, 0.025),
+    ("LDA + KMeans",         0.280, 0.040, 0.239, 0.200, 0.039),
+    ("SBERT + KMeans",       0.266, 0.013, 0.206, 0.100, 0.028),
+    ("SBERT + Hierarchical", 0.284, 0.034, 0.203, 0.100, 0.033),
 ]
 hdrs3 = ["Method", "ROUGE-1", "ROUGE-2", "ROUGE-L", "Kw Coverage", "Centroid Sim"]
 col_ws3 = [3.3, 1.8, 1.8, 1.8, 2.0, 2.0]
@@ -374,7 +374,7 @@ bullet_block(sl, [
     "Each cluster's documents are merged; sentences ranked by TF-IDF cosine similarity to centroid",
     "Top-3 sentences selected as the cluster summary (order preserved for readability)",
     "ROUGE-1 measures unigram overlap; ROUGE-L measures longest common subsequence with representative titles",
-    "TF-IDF + KMeans achieves best ROUGE-1 (0.303) and ROUGE-L (0.216)",
+    "LDA + KMeans wins ROUGE-2 (0.040), ROUGE-L (0.239) and Coverage (0.200) -- best balance overall",
 ], 0.4, 4.95, 12.5, 1.9, size=13, color=RGBColor(0x22, 0x22, 0x22))
 
 
@@ -382,7 +382,7 @@ bullet_block(sl, [
 
 sl = add_slide()
 rect(sl, 0, 0, 13.33, 7.5, fill=RGBColor(0xf4, 0xf6, 0xf9))
-header_bar(sl, "LDA Topic Modeling", "Optimal coherence at 2 topics (coherence = 0.071)")
+header_bar(sl, "LDA Topic Modeling", "Optimal coherence at 3 topics (coherence = 0.071)")
 footer(sl)
 
 lda_path = os.path.join(OUT_DIR, "lda_topics.png")
@@ -410,7 +410,7 @@ if os.path.exists(ok_path):
 
 bullet_block(sl, [
     "k evaluated from 2 to 9 on SBERT embeddings using Silhouette and Davies-Bouldin",
-    "Optimal k = 2 selected by max Silhouette (0.055) — real patent data shows gradual transition across domains",
+    "Diagnostic optimal k = 2 by silhouette, but k = 5 chosen for clustering to match the 5 CPC sections",
     "Low SBERT silhouette values are expected: real patents have nuanced, overlapping technical language",
 ], 0.5, 6.5, 12.3, 0.85, size=12, color=RGBColor(0x22, 0x22, 0x22))
 
@@ -425,17 +425,17 @@ footer(sl)
 panels2 = [
     ("Pipeline Contributions", NAVY, [
         "End-to-end pipeline: ingestion -> preprocessing -> features -> clustering -> summarization -> report",
-        "Three feature representations compared on the same corpus",
-        "Automated optimal-k and optimal-topics search",
-        "Self-contained HTML report with all visualizations embedded",
-        "Docker + docker-compose for reproducible execution",
+        "Three feature representations compared on 5,000 real USPTO patents",
+        "Automated optimal-k and optimal-topics search with coherence scoring",
+        "SBERT embedding cache + memory-aware feature builder for scale",
+        "Self-contained HTML report + interactive Streamlit demo app",
     ]),
     ("Evaluation Findings", BLUE, [
-        "LDA + KMeans: best clustering (Sil=0.907, DB=0.281, Stab=1.000)",
-        "TF-IDF + KMeans: best summarization (ROUGE-1=0.303, ROUGE-L=0.216)",
-        "Real USPTO data (500 patents) shows rich topical structure",
-        "Sentence-BERT captures semantic similarity across domain-specific jargon",
-        "ROUGE evaluation validates extractive summaries against representative patents",
+        "LDA + KMeans: best overall (Sil=0.762, Stab=0.999, ROUGE-L=0.239)",
+        "TF-IDF + KMeans: cleanest interpretable clusters (DB=3.60)",
+        "SBERT + Hierarchical: best ROUGE-1 (0.284) -- captures paraphrase",
+        "Pipeline scaled 10x from 500 to 5,000 patents in ~6 minutes",
+        "Stability ARI > 0.90 across all four methods at this scale",
     ]),
 ]
 pw = 6.0

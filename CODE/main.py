@@ -7,6 +7,7 @@ Usage:
 import argparse
 import time
 import os
+import gc
 import json
 import numpy as np
 
@@ -62,8 +63,10 @@ def main():
     from features import find_best_topics
     print("\n=== Finding optimal LDA topics ===")
     best_topics, topic_scores = find_best_topics(df)
+    gc.collect()
 
     features = build_all_features(df, n_topics=best_topics)
+    gc.collect()
 
     # -- Step 4: Clustering ---------------------------------------------------
     banner("Step 4 -Clustering")
@@ -73,8 +76,11 @@ def main():
     print("\n=== Finding optimal k (SBERT) ===")
     k_results = find_optimal_k(features["sbert"], range(2, 10))
 
-    best_k = max(k_results, key=lambda k: k_results[k]["silhouette"])
-    print(f"Best k based on silhouette: {best_k}")
+    silhouette_best_k = max(k_results, key=lambda k: k_results[k]["silhouette"])
+    print(f"Silhouette-optimal k (diagnostic): {silhouette_best_k}")
+    print(f"Using user-specified k = {args.k} for clustering "
+          f"(matches CPC domain count for interpretability)")
+    best_k = args.k
 
     cluster_results = run_all_clusterings(features, df, k=best_k)
 

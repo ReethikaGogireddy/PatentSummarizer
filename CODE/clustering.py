@@ -3,6 +3,7 @@ Module 4: Clustering
 Applies K-Means to all three representations and evaluates quality.
 """
 
+import gc
 import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
@@ -42,10 +43,14 @@ def cluster_stability(X: np.ndarray,
     if hasattr(X, "toarray"):
         X = X.toarray()
     X = normalize(X, norm="l2")
+    # Reduce runs at scale to control memory + time
+    if X.shape[0] >= 3000:
+        n_runs = 3
     labels_list = []
     for seed in range(n_runs):
         km = KMeans(n_clusters=k, init="k-means++",
-                    n_init=10, random_state=seed, max_iter=300)
+                    n_init=5 if X.shape[0] >= 3000 else 10,
+                    random_state=seed, max_iter=300)
         labels_list.append(km.fit_predict(X))
     aris = []
     for i in range(len(labels_list)):
@@ -128,13 +133,18 @@ def run_all_clusterings(features: dict,
             true_labels = codes
 
     results = {}
+    n_docs = len(df)
     for name, X in configs.items():
+        # Skip Hierarchical Ward at very large scales (O(n^2) memory)
+        if "Hierarchical" in name and n_docs > 6000:
+            print(f"\n[Clustering] {name}  -- SKIPPED (n={n_docs} > 6000, would OOM)")
+            continue
         print(f"\n[Clustering] {name}  (k={k}) ...")
         if "Hierarchical" in name:
             labels, km_model = run_hierarchical(X, k=k)
         else:
             labels, km_model = _run_kmeans(X, k=k)
-            
+
         if hasattr(X, "toarray"):
             Xd = X.toarray()
         else:
@@ -150,6 +160,8 @@ def run_all_clusterings(features: dict,
             "km_model":  km_model,
             "metrics":   metrics,
         }
+        del Xd
+        gc.collect()
     return results
 
 

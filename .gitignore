@@ -209,6 +209,12 @@ __marimo__/
 # Legacy output directory (replaced by EVALUATIONS/)
 outputs/
 
+# SBERT embedding cache (regenerated on first run, ~10MB+ per corpus size)
+EVALUATIONS/.cache/
+
+# Streamlit auto-generated
+.streamlit/
+
 # macOS system files
 .DS_Store
 **/.DS_Store
