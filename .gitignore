@@ -212,8 +212,8 @@ outputs/
 # SBERT embedding cache (regenerated on first run, ~10MB+ per corpus size)
 EVALUATIONS/.cache/
 
-# Streamlit auto-generated
-.streamlit/
+# Streamlit auto-generated cache (but keep config.toml tracked)
+.streamlit/secrets.toml
 
 # macOS system files
 .DS_Store

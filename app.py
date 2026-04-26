@@ -155,13 +155,17 @@ with st.sidebar:
         source = st.selectbox(
             "Data source",
             ["synthetic", "bigpatent"],
-            help="synthetic = 48 patents (~10s).  bigpatent = real USPTO (~2 min)."
+            help="synthetic = up to 48 patents (~10s).  "
+                 "bigpatent = real USPTO patents (500=~30s, 5000=~6min)."
         )
-        default_n = 48 if source == "synthetic" else 100
-        max_n = 48 if source == "synthetic" else 500
-        n_patents = st.slider("Patents to load", 24, max_n, default_n, step=12)
-        k_clusters = st.slider("Clusters (k)", 2, 10, 6)
-        n_topics = st.slider("LDA topics", 2, 10, 6)
+        if source == "synthetic":
+            n_patents = st.slider("Patents to load", 24, 48, 48, step=12)
+        else:
+            n_patents = st.slider("Patents to load", 500, 5000, 500, step=500,
+                                  help="500 demos in ~30s. 5000 takes ~6 min "
+                                       "(needs 1.5GB+ free RAM).")
+        k_clusters = st.slider("Clusters (k)", 2, 10, 5)
+        n_topics = st.slider("LDA topics", 2, 10, 5)
         skip_viz = st.checkbox("Skip charts (faster)", value=False)
         run_btn = st.button("▶ Run Pipeline", type="primary", use_container_width=True)
     else:
